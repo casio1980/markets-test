@@ -3,28 +3,47 @@ const { createStore } = require('redux');
 
 const data = require('./data/TSLA.json');
 const {
-  LONG, CLOSE, HIGH, LOW, MEDIAN, OPEN,
+  CLOSE,
+  HIGH,
+  LONG,
+  LOW,
+  MEDIAN,
+  OPEN,
 } = require('./js/constants');
+const { addDimension } = require('./js/helpers');
 const {
-  BUY, SELL, buy, sell,
+  BUY,
+  buy,
+  SELL,
+  sell,
 } = require('./js/actions');
 const { reducer } = require('./js/reducers');
 
 const prices = [CLOSE, HIGH, LOW, MEDIAN, OPEN];
 const periods = [2, 3, 4, 5, 7];
 
-const pricesAndPeriods = [];
-prices.forEach((price) => {
-  periods.forEach((period) => {
-    pricesAndPeriods.push({ price, period });
-  });
-});
+// TODO - implement chain
+const a1 = addDimension([], prices, 'price');
+const a2 = addDimension(a1, prices, 'prevPrice');
+const pricesAndPeriods = addDimension(a2, periods, 'period');
+
+// pricesAndPeriods.push({ price: 'close', prevPrice: 'high', period: 2 });
 
 const funcs = [
   function whenPriceCrossedSMA(s, c, p, opts) {
     const { price, period } = opts;
     const sma = p[`sma_${period}`];
     return p[price] > sma ? BUY : SELL;
+  },
+
+  function whenPriceGoesUp(s, c, p, opts) {
+    const { price } = opts;
+    return c[price] > p[price] ? BUY : SELL;
+  },
+
+  function whenPriceGoesUpImproved(s, c, p, opts) {
+    const { price, prevPrice } = opts;
+    return c[price] > p[prevPrice] ? BUY : SELL;
   },
 ];
 
@@ -34,7 +53,7 @@ function decisionFunc(state, current, previous, params) {
   const { position } = state;
   // const { period } = params;
 
-  const signal = funcs[0](state, current, previous, params);
+  const signal = funcs[2](state, current, previous, params);
   if (position === undefined && signal === BUY) {
     return BUY;
   } else if (position === LONG && signal === SELL) {
@@ -49,13 +68,19 @@ pricesAndPeriods.forEach((item) => {
 
   data.forEach((val, idx, arr) => {
     const state = store.getState();
-    const { median } = val;
-    const decision = decisionFunc(state, val, arr[idx - 1], item);
+    const previous = arr[idx - 1];
+    const decision = decisionFunc(state, val, previous, item);
 
     if (decision === BUY) {
-      store.dispatch(buy(median));
+      store.dispatch(buy(val.close));
+      if (pricesAndPeriods.length === 1) { // TODO
+        console.log(val.date, 'BUY ->', store.getState());
+      }
     } else if (decision === SELL) {
-      store.dispatch(sell(median));
+      store.dispatch(sell(val.close));
+      if (pricesAndPeriods.length === 1) { // TODO
+        console.log(val.date, 'SELL ->', store.getState());
+      }
     }
   });
 
