@@ -11,7 +11,7 @@ exports.requestYahooQuote = async options =>
     });
   });
 
-exports.addDimension = (array, dimension, name = 'item') => {
+const addDimension = (array, dimension, name = 'item') => {
   const response = [];
   dimension.forEach((item) => {
     if (_.isEmpty(array)) {
@@ -27,4 +27,17 @@ exports.addDimension = (array, dimension, name = 'item') => {
     }
   });
   return response;
+};
+
+exports.sequence = (array) => {
+  const obj = {
+    val: array,
+    addDimension: (dimension, name) => {
+      obj.val = addDimension(obj.val, dimension, name);
+      return obj;
+    },
+    value: () => (obj.val),
+  };
+
+  return obj;
 };

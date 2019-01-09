@@ -10,7 +10,7 @@ const {
   MEDIAN,
   OPEN,
 } = require('./js/constants');
-const { addDimension } = require('./js/helpers');
+const { sequence } = require('./js/helpers');
 const {
   BUY,
   buy,
@@ -22,10 +22,11 @@ const { reducer } = require('./js/reducers');
 const prices = [CLOSE, HIGH, LOW, MEDIAN, OPEN];
 const periods = [2, 3, 4, 5, 7];
 
-// TODO - implement chain
-const a1 = addDimension([], prices, 'price');
-const a2 = addDimension(a1, prices, 'prevPrice');
-const pricesAndPeriods = addDimension(a2, periods, 'period');
+const pricesAndPeriods = sequence([])
+  .addDimension(prices, 'price')
+  .addDimension(prices, 'prevPrice')
+  .addDimension(periods, 'period')
+  .value();
 
 // pricesAndPeriods.push({ price: 'close', prevPrice: 'high', period: 2 });
 
