@@ -1,51 +1,49 @@
 /* eslint-disable no-case-declarations */
 const { fmtNumber } = require('./helpers');
 const { BUY, SELL } = require('./actions');
-const { COMMISSION, LONG } = require('./constants');
+const { COMMISSION, INITIAL_MONEY, LONG } = require('./constants');
 
 const initialState = {
   assets: 0,
-  money: 1000,
+  money: INITIAL_MONEY,
+  prevMoney: undefined,
   position: undefined,
   price: undefined,
+  percent: undefined,
 };
 
 exports.reducer = (state = initialState, action) => {
-  const { type, price, ...other } = action;
+  const { type, price } = action;
+  const { position, assets, money, prevMoney } = state;
 
-  switch (type) {
-    case BUY:
-      const assets = Math.floor(state.money / price / (1 + COMMISSION)); // max possible amount
-      if (assets > 0) {
-        const sum = -fmtNumber(assets * price);
-        const comm = -fmtNumber(sum * COMMISSION);
+  if (type === BUY && !position) {
+    const newAssets = Math.floor(money / price / (1 + COMMISSION)); // max possible amount
 
-        return {
-          assets,
-          money: fmtNumber(state.money + sum + comm),
-          position: LONG,
-          price,
-          ...other,
-        };
-      }
-      return state;
+    const sum = -fmtNumber(newAssets * price);
+    const comm = -fmtNumber(sum * COMMISSION);
 
-    case SELL:
-      if (state.assets > 0) { // max possible amount
-        const sum = +fmtNumber(state.assets * price);
-        const comm = -fmtNumber(sum * COMMISSION);
+    return {
+      assets: newAssets,
+      money: fmtNumber(money + sum + comm),
+      prevMoney: money,
+      position: LONG,
+      price,
+      percent: 0,
+    };
+  } else if (type === SELL && position === LONG) {
+    const sum = +fmtNumber(assets * price);
+    const comm = -fmtNumber(sum * COMMISSION);
+    const newMoney = fmtNumber(money + sum + comm);
 
-        return {
-          assets: 0,
-          money: fmtNumber(state.money + sum + comm),
-          position: undefined,
-          price,
-          ...other,
-        };
-      }
-      return state;
-
-    default:
-      return state;
+    return {
+      assets: 0,
+      money: newMoney,
+      prevMoney,
+      position: undefined,
+      price,
+      percent: ((newMoney - prevMoney) / prevMoney) * 100, // TODO extract
+    };
   }
+
+  return state;
 };
