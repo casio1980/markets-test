@@ -14,6 +14,7 @@ if (symbols.length === 0) {
 }
 
 // downloading
+console.log(`Downloading ${symbols}...`);
 yahooFinance.historical(
   { symbols, from, to },
   (err, quotes) => {
