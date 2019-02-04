@@ -32,7 +32,7 @@ const fractions =
 // node index.js TSLA --best
 const { _: symbols, best } = minimist(process.argv.slice(2));
 if (symbols.length !== 1) {
-  console.log('Symbol should be specified');
+  console.log('ERROR: Symbol should be specified');
   process.exit();
 }
 const [symbol] = symbols;
@@ -55,6 +55,11 @@ const strategy = best
     .addDimension(fractions, 'profit')
     .addDimension(fractions, 'stopLoss')
     .value();
+
+if (best && !strategy) {
+  console.log('ERROR: Best strategy is not defined');
+  process.exit();
+}
 
 const funcs = [ // TODO BUYs should be on top of SELLs
   // function buyWhenPriceCrossSMA(state, current, previous, params) {
@@ -136,7 +141,7 @@ strategy.forEach((item) => {
   data.forEach((current, idx, arr) =>
     decisionFunc(store, current, arr[idx - 1], item));
 
-  // cleanup
+  // closing the last position
   const { position, price } = store.getState();
   if (position === LONG) {
     store.dispatch(sell(price));
@@ -147,10 +152,8 @@ strategy.forEach((item) => {
 
 // results
 results.sort((a, b) => (b.money - a.money));
-console.log(results[0].item, '->', `${results[0].money} | ${fmtNumber(((results[0].money - INITIAL_MONEY) / INITIAL_MONEY) * 100)}%`);
-if (!best) {
-  console.log(results[1].item, '->', results[1].money);
-  console.log(results[2].item, '->', results[2].money);
-  console.log(results[3].item, '->', results[3].money);
-  console.log(results[4].item, '->', results[4].money);
-}
+const logged = results.slice(0, best ? 1 : 5);
+console.log();
+logged.forEach((el, i) => {
+  console.log(`${i + 1}. ${JSON.stringify(el.item)} -> ${el.money} | ${fmtNumber(((el.money - INITIAL_MONEY) / INITIAL_MONEY) * 100)}%`);
+});

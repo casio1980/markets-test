@@ -48,7 +48,7 @@ function applySMA(arr) {
 // node makeData.js AAPL TSLA
 const { _: symbols } = minimist(process.argv.slice(2));
 if (symbols.length === 0) {
-  console.log('At least one symbol should be specified');
+  console.log('ERROR: At least one symbol should be specified');
   process.exit();
 }
 
