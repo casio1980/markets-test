@@ -1,8 +1,10 @@
 /* eslint-disable no-console */
 const { createStore } = require('redux');
+const minimist = require('minimist');
 
-const data = require('./data/TSLA.json');
+const config = require('./config');
 const {
+  DATA_FOLDER,
   INITIAL_MONEY,
   CLOSE,
   HIGH,
@@ -25,24 +27,28 @@ const prices =
 const periods =
   [2, 3, 4, 5, 7];
 const fractions =
-  [0.001, 0.002, 0.003, 0.004, 0.005, 0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.2, 0.3];
+  [0.005, 0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.2, 0.3];
 
-// AMZN
-let seq = [{ priceBuy: 'open', prevPriceBuy: 'low', priceSell: 'close', prevPriceSell: 'high', profit: 0.03 }]; // 2220.05
+const { _: symbols } = minimist(process.argv.slice(2));
+if (symbols.length !== 1) {
+  console.log('Symbol should be specified');
+  process.exit();
+}
+const [symbol] = symbols;
+const dataFileName = `${DATA_FOLDER}/${symbol}.json`;
 
-// TSLA
-// seq = [{ priceBuy: 'open', prevPriceBuy: 'low', priceSell: 'close', prevPriceSell: 'high', profit: 0.02 }]; // 43967.52
-// seq = [{ priceBuy: 'open', prevPriceBuy: 'low', priceSell: 'close', prevPriceSell: 'open', profit: 0.015, stopLoss: 0.005 }]; // 41119.28 | 311.19%
-// seq = [{ priceBuy: 'open', prevPriceBuy: 'low', priceSell: 'close', prevPriceSell: 'median', profit: 0.015, stopLoss: 0.005 }]; // 41119.28 | 311.19%'
-seq = [{ priceBuy: 'open', prevPriceBuy: 'low', profit: 0.015, stopLoss: 0.004 }]; // 45345.18 | 353.45%
-seq = [{ priceBuy: 'open', prevPriceBuy: 'low', profit: 0.015, stopLoss: 0.005 }]; // 41119.28 | 311.19%
+console.log(`Processing ${dataFileName}...`);
+// eslint-disable-next-line import/no-dynamic-require
+const data = require(dataFileName);
 
-seq =
+let seq = config.strategies[symbol];
+
+seq1 =
   sequence([])
     // .addDimension([OPEN], 'priceBuy')
     // .addDimension([LOW], 'prevPriceBuy')
     .addDimension([OPEN], 'priceBuy')
-    .addDimension(prices, 'prevPriceBuy')
+    .addDimension([HIGH], 'prevPriceBuy')
     // .addDimension([CLOSE], 'priceSell')
     // .addDimension(prices, 'prevPriceSell')
     // .addDimension(periods, 'period')
@@ -51,15 +57,12 @@ seq =
     .value();
 
 const funcs = [ // TODO BUYs should be on top of SELLs
-  // whenPriceCrossedSMA: (s, c, p, opts) => {
-  //   const { price, period } = opts;
-  //   const sma = p[`sma_${period}`];
-  //   return p[price] > sma ? BUY : SELL;
-  // },
-
-  // whenPriceGoesUp: (s, c, p, opts) => {
-  //   const { price } = opts;
-  //   return c[price] > p[price] ? BUY : SELL;
+  // function buyWhenPriceCrossSMA(state, current, previous, params) {
+  //   const { priceBuy, period } = params;
+  //   const sma = previous[`sma_${period}`];
+  //   return current[priceBuy] > sma
+  //     ? { type: BUY, price: current[priceBuy] }
+  //     : undefined;
   // },
 
   function buyWhenPriceGoesUp(state, current, previous, params) {
