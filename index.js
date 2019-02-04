@@ -29,7 +29,8 @@ const periods =
 const fractions =
   [0.005, 0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.2, 0.3];
 
-const { _: symbols } = minimist(process.argv.slice(2));
+// node index.js TSLA --best
+const { _: symbols, best } = minimist(process.argv.slice(2));
 if (symbols.length !== 1) {
   console.log('Symbol should be specified');
   process.exit();
@@ -41,10 +42,9 @@ console.log(`Processing ${dataFileName}...`);
 // eslint-disable-next-line import/no-dynamic-require
 const data = require(dataFileName);
 
-let seq = config.strategies[symbol];
-
-seq1 =
-  sequence([])
+const strategy = best
+  ? config.bestStrategies[symbol]
+  : sequence([])
     // .addDimension([OPEN], 'priceBuy')
     // .addDimension([LOW], 'prevPriceBuy')
     .addDimension([OPEN], 'priceBuy')
@@ -113,13 +113,13 @@ const decisionFunc = (store, current, previous, params) => {
       const { position } = store.getState();
       if (decision.type === BUY && !position) {
         store.dispatch(buy(decision.price));
-        if (seq.length === 1) { // TODO
+        if (best) {
           const { price } = store.getState();
           console.log(current.date, `BUY -> ${price}`);
         }
       } else if (decision.type === SELL && position === LONG) {
         store.dispatch(sell(decision.price));
-        if (seq.length === 1) { // TODO
+        if (best) {
           const { price, money, percent } = store.getState();
           console.log(current.date, `SELL -> ${price} ${money} | ${fmtNumber(percent)}% // ${decision.name}`);
         }
@@ -129,7 +129,7 @@ const decisionFunc = (store, current, previous, params) => {
 };
 
 const results = [];
-seq.forEach((item) => {
+strategy.forEach((item) => {
   const store = createStore(reducer);
 
   // main loop
@@ -148,7 +148,7 @@ seq.forEach((item) => {
 // results
 results.sort((a, b) => (b.money - a.money));
 console.log(results[0].item, '->', `${results[0].money} | ${fmtNumber(((results[0].money - INITIAL_MONEY) / INITIAL_MONEY) * 100)}%`);
-if (results.length > 1) { // TODO
+if (!best) {
   console.log(results[1].item, '->', results[1].money);
   console.log(results[2].item, '->', results[2].money);
   console.log(results[3].item, '->', results[3].money);

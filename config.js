@@ -1,6 +1,6 @@
 const config = {};
 
-config.strategies = {
+config.bestStrategies = {
   AMZN: [{
     priceBuy: 'open', prevPriceBuy: 'low', priceSell: 'close', prevPriceSell: 'high', profit: 0.03, // 2220.05
   }],
