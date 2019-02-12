@@ -5,7 +5,8 @@ config.bestStrategies = {
     priceBuy: 'open', prevPriceBuy: 'low', priceSell: 'close', prevPriceSell: 'high', profit: 0.03, // 2220.05
   }],
   TSLA: [{
-    priceBuy: 'open', prevPriceBuy: 'high', profit: 0.04, stopLoss: 0.005, //  '->' '13306.87 | 33.07%'
+    // priceBuy: 'open', prevPriceBuy: 'high', profit: 0.015, stopLoss: 0.005, // -> 13306.87 | 33.07%
+    priceBuy: 'open', prevPriceBuy: 'high', profit: 0.015, stopLoss: 0.005, // -> 12864.61 | 28.65%
   }],
 };
 
