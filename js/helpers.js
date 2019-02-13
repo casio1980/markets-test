@@ -1,7 +1,12 @@
 const yahooFinance = require('yahoo-finance'); // TODO https://github.com/pilwon/node-google-finance
 const _ = require('lodash');
+const moment = require('moment');
+const { DATE_FORMAT } = require('./constants');
+
 
 exports.fmtNumber = number => +number.toFixed(2);
+
+exports.getCurrentDate = () => moment().format(DATE_FORMAT);
 
 exports.requestYahooQuote = async options =>
   new Promise((resolve, reject) => {

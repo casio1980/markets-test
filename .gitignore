@@ -4,3 +4,4 @@ _*
 raw
 data
 .env
+*.log

@@ -7,13 +7,16 @@
     "start": "node index.js",
     "dl": "node dl.js",
     "makeData": "node makeData.js",
+    "server": "cd server && node index.js",
     "test": "./node_modules/.bin/mocha --compilers js:babel-core/register tests/"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "dotenv": "^6.2.0",
+    "dotenv": "6.2.0",
+    "express": "4.16.4",
     "lodash": "4.17.11",
+    "log4js": "4.0.2",
     "minimist": "1.2.0",
     "moment": "2.22.2",
     "mongodb": "3.1.13",
