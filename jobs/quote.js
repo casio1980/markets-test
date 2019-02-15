@@ -17,37 +17,24 @@ log4js.configure({
   },
 });
 
-const logger = log4js.getLogger('server');
-
-const symbols = process.env.SYMBOLS.replace(/ /g, '').split(','); // ['TSLA', 'AMZN', 'AAPL']
-const modules = ['price'];
+const logger = log4js.getLogger(process.env.LOG_CATEGORY || 'default');
 
 (async function () {
   try {
+    const symbols = process.env.SYMBOLS.replace(/ /g, '').split(','); // ['TSLA', 'AMZN', 'AAPL']
+    const modules = ['price'];
+
     logger.debug(`Downloading ${process.env.SYMBOLS}...`);
     const quotes = await requestYahooQuote({ symbols, modules });
 
-    logger.debug('Connecting to DB...');
+    logger.trace('Connecting to DB...');
     const client = await connect(process.env.DB_URL);
     const db = client.db(process.env.DB_NAME);
     const collection = db.collection(getCurrentDate());
 
     const result = await collection.insertMany(_.values(quotes));
-    logger.trace(result);
+    logger.trace(result.result);
     client.close();
-
-    // collection.insertMany(_.values(quotes), (err, result) => {
-    //   console.log(result);
-    //   client.close();
-    // });
-
-    // symbols.forEach((symbol) => {
-    //   const collection = db.collection(symbol);
-
-    //   collection.insertOne(quotes[symbol], (err, result) => {
-    //     logger.debug(result);
-    //   });
-    // });
   } catch (err) {
     logger.fatal(err);
   }
