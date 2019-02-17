@@ -3,7 +3,6 @@ const _ = require('lodash');
 const moment = require('moment');
 const { DATE_FORMAT } = require('./constants');
 
-
 exports.fmtNumber = number => +number.toFixed(2);
 
 exports.getCurrentDate = () => moment().format(DATE_FORMAT);
