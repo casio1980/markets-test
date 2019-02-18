@@ -1,5 +1,4 @@
 /* eslint-disable func-names */
-/* eslint-disable no-console */
 require('dotenv').config();
 const log4js = require('log4js');
 const _ = require('lodash');
@@ -20,6 +19,7 @@ log4js.configure({
 const logger = log4js.getLogger(process.env.LOG_CATEGORY || 'default');
 
 (async function () {
+  let client;
   try {
     const symbols = process.env.SYMBOLS.replace(/ /g, '').split(','); // ['TSLA', 'AMZN', 'AAPL']
     const modules = ['price'];
@@ -28,14 +28,15 @@ const logger = log4js.getLogger(process.env.LOG_CATEGORY || 'default');
     const quotes = await requestYahooQuote({ symbols, modules });
 
     logger.trace('Connecting to DB...');
-    const client = await connect(process.env.DB_URL);
+    client = await connect(process.env.DB_URL);
     const db = client.db(process.env.DB_NAME);
     const collection = db.collection(getCurrentDate());
 
     const result = await collection.insertMany(_.values(quotes));
     logger.trace(result.result);
-    client.close();
   } catch (err) {
     logger.fatal(err);
+  } finally {
+    client.close();
   }
 }());

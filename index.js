@@ -48,7 +48,7 @@ const strategy = best
     // .addDimension([OPEN], 'priceBuy')
     // .addDimension([LOW], 'prevPriceBuy')
     .addDimension([OPEN], 'priceBuy')
-    .addDimension([HIGH], 'prevPriceBuy')
+    .addDimension(prices, 'prevPriceBuy')
     // .addDimension([CLOSE], 'priceSell')
     // .addDimension(prices, 'prevPriceSell')
     // .addDimension(periods, 'period')

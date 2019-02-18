@@ -1,5 +1,4 @@
 /* eslint-disable no-underscore-dangle */
-/* eslint-disable no-console */
 require('dotenv').config();
 const express = require('express');
 const log4js = require('log4js');
@@ -142,7 +141,7 @@ const getSnap = async (collection, symbolName) => {
     decision: {
       preMarketPrice,
       prevMarketDayHigh,
-      regularMarketOpen,
+      buyPrice,
       takeProfit,
       stopLoss,
     },
