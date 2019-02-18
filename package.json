@@ -7,7 +7,7 @@
     "start": "node index.js",
     "dl": "node dl.js",
     "makeData": "node makeData.js",
-    "server": "cd server && node index.js",
+    "server": "cd server && node server.js",
     "test": "./node_modules/.bin/mocha --compilers js:babel-core/register tests/"
   },
   "author": "",

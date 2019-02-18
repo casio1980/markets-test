@@ -86,6 +86,11 @@ server.get('/symbols', async (req, res, next) => {
 });
 
 const getSnap = async (collection, symbolName) => {
+  const queryClosed = { 'price.symbol': symbolName, 'price.marketState': CLOSED };
+  const [docClosed] =
+    await collection.find(queryClosed).sort({ $natural: -1 }).limit(1).toArray();
+  const { price: priceClosed } = docClosed || {};
+
   const queryPre = { 'price.symbol': symbolName, 'price.marketState': PREMARKET };
   const [docPre] =
     await collection.find(queryPre).sort({ $natural: -1 }).limit(1).toArray();
@@ -96,7 +101,7 @@ const getSnap = async (collection, symbolName) => {
     await collection.find(queryRegular).sort({ $natural: -1 }).limit(1).toArray();
   const { price: priceRegular } = docRegular || {};
 
-  const status = get(priceRegular, 'marketState') || get(pricePre, 'marketState') || CLOSED;
+  const status = get(priceRegular, 'marketState') || get(pricePre, 'marketState') || get(priceClosed, 'marketState');
   const preMarketPrice = get(pricePre, 'preMarketPrice');
   const prevMarketDayHigh = get(pricePre, 'regularMarketDayHigh');
   const regularMarketOpen = get(priceRegular, 'regularMarketOpen');
@@ -124,7 +129,7 @@ const getSnap = async (collection, symbolName) => {
 
   return {
     status,
-    prev: pick(pricePre, [
+    prev: pick(pricePre || priceClosed, [
       'regularMarketDayHigh',
       'regularMarketDayLow',
       'regularMarketOpen',
