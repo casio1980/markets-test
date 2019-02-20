@@ -7,6 +7,7 @@ module.exports = {
   NOT_AVAILABLE: 'N/A',
 
   CLOSED: 'CLOSED',
+  PREPRE: 'PREPRE',
   PREMARKET: 'PRE',
   REGULAR: 'REGULAR',
 

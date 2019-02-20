@@ -5,7 +5,12 @@ const log4js = require('log4js');
 const { get, pick } = require('lodash');
 const { connect } = require('../js/database');
 const { getCurrentDate, fmtNumber } = require('../js/helpers');
-const { CLOSED, PREMARKET, REGULAR } = require('../js/constants');
+const {
+  CLOSED,
+  PREMARKET,
+  REGULAR,
+  LOW,
+} = require('../js/constants');
 const { bestStrategies } = require('../config');
 
 log4js.configure({
@@ -104,25 +109,29 @@ const getSnap = async (collection, symbolName) => {
   const status = get(priceRegular, 'marketState') || get(pricePre, 'marketState') || get(priceClosed, 'marketState');
   const preMarketPrice = get(pricePre, 'preMarketPrice');
   const prevMarketDayHigh = get(pricePre, 'regularMarketDayHigh');
+  const prevMarketDayLow = get(pricePre, 'regularMarketDayLow');
   const regularMarketOpen = get(priceRegular, 'regularMarketOpen');
 
   // TODO compute signal
   const [strategy] = bestStrategies[symbolName];
+  const signalPrice = strategy.prevPriceBuy === LOW
+    ? prevMarketDayLow
+    : prevMarketDayHigh;
   // const prevPriceBuy = get(pricePre, 'regularMarketDayHigh'); // high
   // const priceBuy = get(priceRegular, 'regularMarketOpen'); // open
 
   let signalBuy;
   if (status === PREMARKET) {
-    signalBuy = preMarketPrice > prevMarketDayHigh;
+    signalBuy = preMarketPrice > signalPrice;
   } else if (status === REGULAR) {
-    signalBuy = regularMarketOpen > prevMarketDayHigh;
+    signalBuy = regularMarketOpen > signalPrice;
   }
 
   let buyPrice;
   let takeProfit;
   let stopLoss;
   if (signalBuy) {
-    buyPrice = regularMarketOpen;
+    buyPrice = regularMarketOpen || preMarketPrice;
     takeProfit = fmtNumber(buyPrice * (1 + strategy.profit));
     stopLoss = fmtNumber(buyPrice * (1 - strategy.stopLoss));
   }
@@ -145,7 +154,8 @@ const getSnap = async (collection, symbolName) => {
     signalBuy,
     decision: {
       preMarketPrice,
-      prevMarketDayHigh,
+      // prevMarketDayHigh,
+      signalPrice,
       buyPrice,
       takeProfit,
       stopLoss,
@@ -179,6 +189,15 @@ server.get('/snap/', async (req, res, next) => {
       // eslint-disable-next-line no-await-in-loop
       result[id] = await getSnap(collection, id);
     }
+
+    // TODO remove
+    result.signals = [];
+    symbols.forEach((symbol) => {
+      const id = symbol._id;
+      if (result[id].signalBuy) {
+        result.signals.push(id);
+      }
+    });
 
     res.json(result);
   } catch (err) {
