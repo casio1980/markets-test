@@ -136,6 +136,17 @@ const getSnap = async (collection, symbolName) => {
     stopLoss = fmtNumber(buyPrice * (1 - strategy.stopLoss));
   }
 
+  let decisionType;
+  if (takeProfit < get(priceRegular, 'regularMarketDayHigh')) {
+    if (stopLoss > get(priceRegular, 'regularMarketDayLow')) {
+      decisionType = 'BOTH';
+    } else {
+      decisionType = 'PROFIT';
+    }
+  } else if (stopLoss > get(priceRegular, 'regularMarketDayLow')) {
+    decisionType = 'LOSS';
+  }
+
   return {
     status,
     prev: pick(pricePre || priceClosed, [
@@ -144,7 +155,8 @@ const getSnap = async (collection, symbolName) => {
       'regularMarketOpen',
       'regularMarketPrice',
     ]),
-    current: pick(priceRegular, [
+    current: pick(priceRegular || pricePre, [
+      'preMarketPrice',
       'regularMarketDayHigh',
       'regularMarketDayLow',
       'regularMarketOpen',
@@ -153,12 +165,15 @@ const getSnap = async (collection, symbolName) => {
     strategy,
     signalBuy,
     decision: {
-      preMarketPrice,
+      // preMarketPrice,
       // prevMarketDayHigh,
       signalPrice,
       buyPrice,
       takeProfit,
       stopLoss,
+      decisionType,
+      // isProfit: takeProfit < get(priceRegular, 'regularMarketDayHigh'),
+      // isLoss: stopLoss > get(priceRegular, 'regularMarketDayLow'),
     },
   };
 };
