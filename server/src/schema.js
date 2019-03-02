@@ -46,6 +46,7 @@ const QuoteType = new GraphQLObjectType({
 const SnapType = new GraphQLObjectType({
   name: 'Snapshot',
   fields: () => ({
+    symbol: { type: new GraphQLNonNull(GraphQLString) },
     status: { type: new GraphQLNonNull(GraphQLString) },
     prev: {
       type: new GraphQLObjectType({
@@ -197,6 +198,7 @@ const SymbolType = new GraphQLObjectType({
           }
 
           return {
+            symbol,
             status,
             prev: pick(pricePre || priceClosed, [
               'regularMarketDayHigh',
@@ -242,9 +244,11 @@ const QuotesQueryRootType = new GraphQLObjectType({
       type: new GraphQLList(SymbolType),
       description: 'List of all symbols',
       args: {
+        symbol: { type: GraphQLString },
         date: { type: GraphQLString },
       },
       resolve: async (parent, args) => {
+        const symbol = args.symbol ? args.symbol.toUpperCase() : null;
         const date = args.date || getCurrentDate();
 
         let client;
@@ -254,7 +258,10 @@ const QuotesQueryRootType = new GraphQLObjectType({
           const collection = db.collection(date);
 
           const query = [{ $group: { _id: '$price.symbol' } }];
-          const docs = await collection.aggregate(query).toArray();
+          let docs = await collection.aggregate(query).toArray();
+          if (symbol) {
+            docs = docs.filter(doc => doc._id === symbol);
+          }
 
           return docs.map(doc => ({
             date,
