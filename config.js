@@ -3,7 +3,7 @@ const config = {};
 config.bestStrategies = {
   NVDA: [{
     // priceBuy: 'open', prevPriceBuy: 'high', profit: 0.01, stopLoss: 0.005, yield: '22.72%',
-    priceBuy: 'open', prevPriceBuy: 'low', profit:0.01, stopLoss: 0.005, yield: '163.52%',
+    priceBuy: 'open', prevPriceBuy: 'low', profit: 0.01, stopLoss: 0.005, yield: '163.52%',
   }],
   TSLA: [{
     // priceBuy: 'open', prevPriceBuy: 'high', profit: 0.025, stopLoss: 0.005, yield: '34.12%',

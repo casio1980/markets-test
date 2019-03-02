@@ -34,53 +34,8 @@ server.use(log4js.connectLogger(logger, { level: 'auto' }));
 
 server.use('/', graphqlHTTP({
   schema,
-  graphiql: true,
+  graphiql: true, // TODO
 }));
-
-/*
-server.get('/', async (req, res, next) => {
-  let client;
-  try {
-    client = await connect(process.env.DB_URL);
-    const db = client.db(process.env.DB_NAME);
-    const collection = db.collection(getCurrentDate());
-
-    const query = { 'price.symbol': 'TSLA' };
-    const docs = await collection.find(query).toArray();
-    const mappedDocs = docs.map((doc) => {
-      const { price } = doc;
-
-      // marketState: "REGULAR"
-      return pick(price, [
-        'currency',
-        'marketState',
-        'preMarketChange',
-        'preMarketChangePercent',
-        'preMarketPrice',
-        'preMarketSource',
-        'preMarketTime',
-        'regularMarketChange',
-        'regularMarketChangePercent',
-        'regularMarketDayHigh',
-        'regularMarketDayLow',
-        'regularMarketOpen',
-        'regularMarketPreviousClose',
-        'regularMarketPrice',
-        'regularMarketSource',
-        'regularMarketTime',
-        'regularMarketVolume',
-        'symbol',
-      ]);
-    });
-
-    res.json(mappedDocs);
-  } catch (err) {
-    next(err);
-  } finally {
-    if (client) client.close();
-  }
-});
-*/
 
 server.get('/symbols', async (req, res, next) => {
   let client;
