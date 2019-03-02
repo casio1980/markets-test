@@ -1,6 +1,8 @@
 /* eslint-disable no-underscore-dangle */
 require('dotenv').config();
 const express = require('express');
+const { buildSchema } = require('graphql');
+const graphqlHTTP = require('express-graphql');
 const log4js = require('log4js');
 const { get, pick } = require('lodash');
 const { connect } = require('../js/database');
@@ -29,6 +31,28 @@ const server = express();
 const port = process.env.PORT;
 
 server.use(log4js.connectLogger(logger, { level: 'auto' }));
+
+const schema = buildSchema(`
+  type Query {
+    postTitle: String,
+    blogTitle: String
+  }
+`);
+
+const root = {
+  postTitle: () => {
+    return 'Build a Simple GraphQL Server With Express and NodeJS';
+  },
+  blogTitle: () => {
+    return 'scotch.io';
+  }
+};
+
+server.use('/', graphqlHTTP({
+  schema,
+  rootValue: root,
+  graphiql: true,
+}));
 
 server.get('/', async (req, res, next) => {
   let client;
