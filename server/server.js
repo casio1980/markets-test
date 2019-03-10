@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const graphqlHTTP = require('express-graphql');
 const log4js = require('log4js');
+const cors = require('cors');
 const { get, pick } = require('lodash');
 const schema = require('./src/schema.js');
 const { connect } = require('../js/database');
@@ -31,6 +32,7 @@ const server = express();
 const port = process.env.PORT;
 
 server.use(log4js.connectLogger(logger, { level: 'auto' }));
+server.use(cors());
 
 server.use('/', graphqlHTTP({
   schema,
