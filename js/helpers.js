@@ -12,6 +12,8 @@ exports.requestYahooQuote = async options =>
     yahooFinance.quote(options, (err, quotes) => {
       if (err) reject(err);
       else resolve(quotes);
+    }).catch((err) => {
+      reject(err);
     });
   });
 

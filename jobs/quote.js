@@ -24,9 +24,9 @@ const logger = log4js.getLogger(process.env.LOG_CATEGORY || 'default');
     const symbols = process.env.SYMBOLS.replace(/ /g, '').split(','); // ['TSLA', 'AMZN', 'AAPL']
     const modules = ['price'];
 
-    logger.debug(`Downloading ${process.env.SYMBOLS}...`);
+    logger.trace(`Downloading ${process.env.SYMBOLS}...`);
     const quotes = await requestYahooQuote({ symbols, modules });
-    logger.debug(quotes);
+    logger.debug(_.keys(quotes));
 
     logger.trace('Connecting to DB...');
     client = await connect(process.env.DB_URL);
@@ -38,6 +38,6 @@ const logger = log4js.getLogger(process.env.LOG_CATEGORY || 'default');
   } catch (err) {
     logger.fatal(err);
   } finally {
-    client.close();
+    if (client) client.close();
   }
 }());
