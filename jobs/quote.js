@@ -26,6 +26,7 @@ const logger = log4js.getLogger(process.env.LOG_CATEGORY || 'default');
 
     logger.debug(`Downloading ${process.env.SYMBOLS}...`);
     const quotes = await requestYahooQuote({ symbols, modules });
+    logger.debug(quotes);
 
     logger.trace('Connecting to DB...');
     client = await connect(process.env.DB_URL);
