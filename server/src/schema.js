@@ -63,7 +63,7 @@ const SnapType = new GraphQLObjectType({
       type: new GraphQLObjectType({
         name: 'Current',
         fields: () => ({
-          preMarketPrice: { type: new GraphQLNonNull(GraphQLFloat) },
+          preMarketPrice: { type: GraphQLFloat },
           regularMarketDayHigh: { type: new GraphQLNonNull(GraphQLFloat) },
           regularMarketDayLow: { type: new GraphQLNonNull(GraphQLFloat) },
           regularMarketOpen: { type: new GraphQLNonNull(GraphQLFloat) },
