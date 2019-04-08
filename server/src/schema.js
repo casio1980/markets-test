@@ -47,7 +47,6 @@ const SnapType = new GraphQLObjectType({
   name: 'Snapshot',
   fields: () => ({
     symbol: { type: new GraphQLNonNull(GraphQLString) },
-    status: { type: new GraphQLNonNull(GraphQLString) },
     prev: {
       type: new GraphQLObjectType({
         name: 'Previous',
@@ -63,6 +62,8 @@ const SnapType = new GraphQLObjectType({
       type: new GraphQLObjectType({
         name: 'Current',
         fields: () => ({
+          date: { type: new GraphQLNonNull(GraphQLString) },
+          status: { type: new GraphQLNonNull(GraphQLString) },
           preMarketPrice: { type: GraphQLFloat },
           regularMarketDayHigh: { type: new GraphQLNonNull(GraphQLFloat) },
           regularMarketDayLow: { type: new GraphQLNonNull(GraphQLFloat) },
@@ -197,9 +198,8 @@ const SymbolType = new GraphQLObjectType({
             decisionType = 'LOSS';
           }
 
-          return {
+          const result = {
             symbol,
-            status,
             prev: pick(pricePre || priceClosed, [
               'regularMarketDayHigh',
               'regularMarketDayLow',
@@ -227,6 +227,10 @@ const SymbolType = new GraphQLObjectType({
               // isLoss: stopLoss > get(priceRegular, 'regularMarketDayLow'),
             },
           };
+          result.current.date = date;
+          result.current.status = status;
+
+          return result;
         } catch (err) {
           return err; // TODO
         } finally {

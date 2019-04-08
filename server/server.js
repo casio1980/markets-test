@@ -34,9 +34,9 @@ const port = process.env.PORT;
 server.use(log4js.connectLogger(logger, { level: 'auto' }));
 server.use(cors());
 
-server.use('/', graphqlHTTP({
+server.use('/query', graphqlHTTP({
   schema,
-  graphiql: true, // TODO
+  graphiql: true, // TODO close me
 }));
 
 server.get('/symbols', async (req, res, next) => {
