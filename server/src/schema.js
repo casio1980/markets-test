@@ -65,10 +65,10 @@ const SnapType = new GraphQLObjectType({
           date: { type: new GraphQLNonNull(GraphQLString) },
           status: { type: new GraphQLNonNull(GraphQLString) },
           preMarketPrice: { type: GraphQLFloat },
-          regularMarketDayHigh: { type: new GraphQLNonNull(GraphQLFloat) },
-          regularMarketDayLow: { type: new GraphQLNonNull(GraphQLFloat) },
-          regularMarketOpen: { type: new GraphQLNonNull(GraphQLFloat) },
-          regularMarketPrice: { type: new GraphQLNonNull(GraphQLFloat) },
+          regularMarketDayHigh: { type: GraphQLFloat },
+          regularMarketDayLow: { type: GraphQLFloat },
+          regularMarketOpen: { type: GraphQLFloat },
+          regularMarketPrice: { type: GraphQLFloat },
         }),
       }),
     },
@@ -89,7 +89,7 @@ const SnapType = new GraphQLObjectType({
       type: new GraphQLObjectType({
         name: 'Decision',
         fields: () => ({
-          signalPrice: { type: new GraphQLNonNull(GraphQLFloat) },
+          signalPrice: { type: GraphQLFloat },
           buyPrice: { type: GraphQLFloat },
           takeProfit: { type: GraphQLFloat },
           stopLoss: { type: GraphQLFloat },
@@ -171,7 +171,7 @@ const SymbolType = new GraphQLObjectType({
           // const prevPriceBuy = get(pricePre, 'regularMarketDayHigh'); // high
           // const priceBuy = get(priceRegular, 'regularMarketOpen'); // open
 
-          let signalBuy;
+          let signalBuy = false;
           if (status === PREMARKET) {
             signalBuy = preMarketPrice > signalPrice;
           } else if (status === REGULAR) {

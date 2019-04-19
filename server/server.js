@@ -86,7 +86,7 @@ const getSnap = async (collection, symbolName) => {
   // const prevPriceBuy = get(pricePre, 'regularMarketDayHigh'); // high
   // const priceBuy = get(priceRegular, 'regularMarketOpen'); // open
 
-  let signalBuy;
+  let signalBuy = false;
   if (status === PREMARKET) {
     signalBuy = preMarketPrice > signalPrice;
   } else if (status === REGULAR) {
