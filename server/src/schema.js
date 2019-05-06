@@ -13,9 +13,10 @@ const {
 } = require('graphql');
 const {
   CLOSED,
-  PREMARKET,
-  REGULAR,
   LOW,
+  PREMARKET,
+  PREPRE,
+  REGULAR,
 } = require('../../js/constants');
 const { bestStrategies } = require('../../config');
 
@@ -147,7 +148,7 @@ const SymbolType = new GraphQLObjectType({
             await collection.find(queryClosed).sort({ $natural: -1 }).limit(1).toArray();
           const { price: priceClosed } = docClosed || {};
 
-          const queryPre = { 'price.symbol': symbol, 'price.marketState': PREMARKET };
+          const queryPre = { 'price.symbol': symbol, $or: [{ 'price.marketState': PREPRE }, { 'price.marketState': PREMARKET }] };
           const [docPre] =
             await collection.find(queryPre).sort({ $natural: -1 }).limit(1).toArray();
           const { price: pricePre } = docPre || {};
