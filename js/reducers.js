@@ -14,7 +14,9 @@ const initialState = {
 
 exports.reducer = (state = initialState, action) => {
   const { type, price } = action;
-  const { position, assets, money, prevMoney } = state;
+  const {
+    position, assets, money, prevMoney,
+  } = state;
 
   if (type === BUY && !position) {
     const newAssets = Math.floor(money / price / (1 + COMMISSION)); // max possible amount

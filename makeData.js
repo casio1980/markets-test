@@ -55,7 +55,7 @@ if (symbols.length === 0) {
 // processing
 symbols.forEach((symbol) => {
   const rawFileName = `${RAW_FOLDER}/${symbol}.json`;
-  const dataFileName = `${DATA_FOLDER}/${symbol}.json`;
+  const dataFileName = `${DATA_FOLDER}/${symbol}.json`; // DATA_FOLDER should exist
   console.log(`Processing ${rawFileName}...`);
 
   fs.readFile(rawFileName, (err, raw) => {

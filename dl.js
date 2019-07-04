@@ -20,7 +20,7 @@ yahooFinance.historical(
   (err, quotes) => {
     symbols.forEach((symbol) => {
       const quote = quotes[symbol];
-      const fileName = `${RAW_FOLDER}/${symbol}.json`;
+      const fileName = `${RAW_FOLDER}/${symbol}.json`; // RAW_FOLDER should exist
 
       fs.writeFile(fileName, JSON.stringify(quote), (e) => {
         if (e) {
@@ -30,5 +30,5 @@ yahooFinance.historical(
         return null;
       });
     });
-  }
+  },
 );

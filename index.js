@@ -1,159 +1,113 @@
 /* eslint-disable no-console */
+/* eslint-disable func-names */
+require('dotenv').config();
+const { connect } = require('./js/database');
 const { createStore } = require('redux');
 const minimist = require('minimist');
+const { get } = require('lodash');
+const { bestStrategies } = require('./config');
+const { fmtNumber } = require('./js/helpers');
 
-const config = require('./config');
 const {
-  DATA_FOLDER,
-  INITIAL_MONEY,
-  CLOSE,
-  HIGH,
-  LONG,
+  PREMARKET,
+  REGULAR,
   LOW,
-  MEDIAN,
-  OPEN,
 } = require('./js/constants');
-const { fmtNumber, sequence } = require('./js/helpers');
+
 const {
-  BUY,
   buy,
-  SELL,
   sell,
 } = require('./js/actions');
 const { reducer } = require('./js/reducers');
 
-const prices =
-  [CLOSE, HIGH, LOW, MEDIAN, OPEN];
-const periods =
-  [2, 3, 4, 5, 7];
-const fractions =
-  [0.005, 0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.2, 0.3];
-
-// node index.js TSLA --best
-const { _: symbols, best } = minimist(process.argv.slice(2));
+// node index.js TSLA
+const { _: symbols } = minimist(process.argv.slice(2));
 if (symbols.length !== 1) {
   console.log('ERROR: Symbol should be specified');
   process.exit();
 }
 const [symbol] = symbols;
-const dataFileName = `${DATA_FOLDER}/${symbol}.json`;
+console.log(`Processing ${symbol}...`);
 
-console.log(`Processing ${dataFileName}...`);
-// eslint-disable-next-line import/no-dynamic-require
-const data = require(dataFileName);
+(async function () {
+  let client;
+  try {
+    client = await connect(process.env.DB_URL);
+    const db = client.db(process.env.DB_NAME);
+    const collectionInstances = await db.collections();
+    const collections = collectionInstances.map(c => c.s.name).sort();
 
-const strategy = best
-  ? config.bestStrategies[symbol]
-  : sequence([])
-    // .addDimension([OPEN], 'priceBuy')
-    // .addDimension([LOW], 'prevPriceBuy')
-    .addDimension([OPEN], 'priceBuy')
-    .addDimension(prices, 'prevPriceBuy')
-    // .addDimension([CLOSE], 'priceSell')
-    // .addDimension(prices, 'prevPriceSell')
-    // .addDimension(periods, 'period')
-    .addDimension(fractions, 'profit')
-    .addDimension(fractions, 'stopLoss')
-    .value();
+    const store = createStore(reducer);
 
-if (best && !strategy) {
-  console.log('ERROR: Best strategy is not defined');
-  process.exit();
-}
+    // eslint-disable-next-line no-restricted-syntax
+    for (const colName of collections) {
+      const collection = db.collection(colName);
 
-const funcs = [ // TODO BUYs should be on top of SELLs
-  // function buyWhenPriceCrossSMA(state, current, previous, params) {
-  //   const { priceBuy, period } = params;
-  //   const sma = previous[`sma_${period}`];
-  //   return current[priceBuy] > sma
-  //     ? { type: BUY, price: current[priceBuy] }
-  //     : undefined;
-  // },
+      const queryPre = { 'price.symbol': symbol, 'price.marketState': PREMARKET };
+      // eslint-disable-next-line no-await-in-loop
+      const [docPre] = await collection.find(queryPre).sort({ $natural: -1 }).limit(1).toArray();
+      const { price: pricePre } = docPre || {};
 
-  function buyWhenPriceGoesUp(state, current, previous, params) {
-    const { priceBuy, prevPriceBuy } = params;
-    return current[priceBuy] > previous[prevPriceBuy]
-      ? { type: BUY, price: current[priceBuy] }
-      : undefined;
-  },
+      const queryRegular = { 'price.symbol': symbol, 'price.marketState': REGULAR };
+      // eslint-disable-next-line no-await-in-loop
+      const docsRegular = await collection.find(queryRegular).sort({ $natural: 1 }).toArray();
 
-  function sellOnProfit(state, current, previous, params) {
-    const { profit } = params;
-    const profitablePrice = fmtNumber(state.price * (1 + profit));
+      const prevMarketDayHigh = get(pricePre, 'regularMarketDayHigh');
+      const prevMarketDayLow = get(pricePre, 'regularMarketDayLow');
 
-    // console.log('>>>', profitablePrice, current[HIGH]);
+      const [strategy] = bestStrategies[symbol];
+      const signalPrice = strategy.prevPriceBuy === LOW
+        ? prevMarketDayLow
+        : prevMarketDayHigh;
 
-    return profitablePrice < current[HIGH]
-      ? { type: SELL, price: profitablePrice, name: 'PROFIT' }
-      : undefined;
-  },
+      let takeProfit;
+      let stopLoss;
+      let tradeType;
+      let regularMarketPrice;
+      docsRegular.forEach(({ price }) => {
+        const {
+          regularMarketOpen, regularMarketDayHigh, regularMarketDayLow,
+        } = price;
+        // const { position } = store.getState();
+        // eslint-disable-next-line prefer-destructuring
+        regularMarketPrice = price.regularMarketPrice;
+        // console.log(price);
 
-  function sellOnStopLoss(state, current, previous, params) {
-    const { stopLoss } = params;
-    const stopLossPrice = fmtNumber(state.price * (1 - stopLoss));
+        if (!tradeType && regularMarketOpen > signalPrice) {
+          takeProfit = fmtNumber(regularMarketOpen * (1 + strategy.profit));
+          stopLoss = fmtNumber(regularMarketOpen * (1 - strategy.stopLoss));
 
-    // console.log('>>>', stopLossPrice, current[LOW], !!(stopLossPrice > current[LOW]));
-
-    return stopLossPrice > current[LOW]
-      ? { type: SELL, price: stopLossPrice, name: 'SL' }
-      : undefined;
-  },
-
-  // function sellWhenPriceGoesDown(state, current, previous, params) {
-  //   const { priceSell, prevPriceSell } = params;
-  //   return current[priceSell] < previous[prevPriceSell]
-  //     ? { type: SELL, price: current[priceSell], name: 'sellWhenPriceGoesDown' }
-  //     : undefined;
-  // },
-];
-
-// eslint-disable-next-line consistent-return
-const decisionFunc = (store, current, previous, params) => {
-  if (!current || !previous) return;
-
-  funcs.forEach((func) => {
-    const decision = func(store.getState(), current, previous, params);
-
-    if (decision) {
-      const { position } = store.getState();
-      if (decision.type === BUY && !position) {
-        store.dispatch(buy(decision.price));
-        if (best) {
-          const { price } = store.getState();
-          console.log(current.date, `BUY -> ${price}`);
+          store.dispatch(buy(regularMarketPrice));
+          // console.log('Buy @', regularMarketPrice);
+          tradeType = 'OPEN';
         }
-      } else if (decision.type === SELL && position === LONG) {
-        store.dispatch(sell(decision.price));
-        if (best) {
-          const { price, money, percent } = store.getState();
-          console.log(current.date, `SELL -> ${price} ${money} | ${fmtNumber(percent)}% // ${decision.name}`);
+
+        if (tradeType === 'OPEN' && stopLoss > regularMarketDayLow) {
+          store.dispatch(sell(stopLoss));
+          tradeType = 'LOSS';
+          // console.log('Sell @', stopLoss, tradeType);
         }
+        if (tradeType === 'OPEN' && takeProfit < regularMarketDayHigh) {
+          store.dispatch(sell(takeProfit));
+          tradeType = 'PROFIT';
+          // console.log('Sell @', takeProfit, tradeType);
+        }
+      });
+      if (tradeType === 'OPEN') {
+        store.dispatch(sell(regularMarketPrice));
+        tradeType = 'CLOSED';
+        // console.log('Sell @', regularMarketPrice, tradeType);
       }
+
+      // console.log(`${colName} > [${prevMarketDayLow}, ${prevMarketDayHigh}] ${signalPrice}`);
+      console.log(`${colName} > ${store.getState().money}, ${tradeType}`);
+      // console.log();
     }
-  });
-};
 
-const results = [];
-strategy.forEach((item) => {
-  const store = createStore(reducer);
-
-  // main loop
-  data.forEach((current, idx, arr) =>
-    decisionFunc(store, current, arr[idx - 1], item));
-
-  // closing the last position
-  const { position, price } = store.getState();
-  if (position === LONG) {
-    store.dispatch(sell(price));
+    console.log('Done', store.getState());
+  } catch (err) {
+    console.error(err);
+  } finally {
+    if (client) client.close();
   }
-
-  results.push({ item, money: store.getState().money });
-});
-
-// results
-results.sort((a, b) => (b.money - a.money));
-const logged = results.slice(0, best ? 1 : 5);
-console.log();
-logged.forEach((el, i) => {
-  console.log(`${i + 1}. ${JSON.stringify(el.item)} -> ${el.money} | ${fmtNumber(((el.money - INITIAL_MONEY) / INITIAL_MONEY) * 100)}%`);
-});
+}());
