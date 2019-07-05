@@ -15,7 +15,10 @@ const initialState = {
 exports.reducer = (state = initialState, action) => {
   const { type, price } = action;
   const {
-    position, assets, money, prevMoney,
+    position,
+    assets,
+    money,
+    prevMoney,
   } = state;
 
   if (type === BUY && !position) {
@@ -25,6 +28,7 @@ exports.reducer = (state = initialState, action) => {
     const comm = -fmtNumber(sum * COMMISSION);
 
     return {
+      ...state,
       assets: newAssets,
       money: fmtNumber(money + sum + comm),
       prevMoney: money,
@@ -38,6 +42,7 @@ exports.reducer = (state = initialState, action) => {
     const newMoney = fmtNumber(money + sum + comm);
 
     return {
+      ...state,
       assets: 0,
       money: newMoney,
       prevMoney,

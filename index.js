@@ -64,6 +64,7 @@ console.log(`Processing ${symbol}...`);
       let stopLoss;
       let tradeType;
       let regularMarketPrice;
+      const debug = false;
       docsRegular.forEach(({ price }) => {
         const {
           regularMarketOpen, regularMarketDayHigh, regularMarketDayLow,
@@ -74,34 +75,34 @@ console.log(`Processing ${symbol}...`);
         // console.log(price);
 
         if (!tradeType && regularMarketOpen > signalPrice) {
-          takeProfit = fmtNumber(regularMarketOpen * (1 + strategy.profit));
-          stopLoss = fmtNumber(regularMarketOpen * (1 - strategy.stopLoss));
+          const buyPrice = regularMarketPrice;
+          takeProfit = fmtNumber(buyPrice * (1 + strategy.profit));
+          stopLoss = fmtNumber(buyPrice * (1 - strategy.stopLoss));
 
-          store.dispatch(buy(regularMarketPrice));
-          // console.log('Buy @', regularMarketPrice);
+          store.dispatch(buy(buyPrice));
           tradeType = 'OPEN';
+          if (debug) console.log('Buy @', buyPrice);
         }
 
         if (tradeType === 'OPEN' && stopLoss > regularMarketDayLow) {
           store.dispatch(sell(stopLoss));
           tradeType = 'LOSS';
-          // console.log('Sell @', stopLoss, tradeType);
+          if (debug) console.log('Loss @', stopLoss, tradeType);
         }
         if (tradeType === 'OPEN' && takeProfit < regularMarketDayHigh) {
           store.dispatch(sell(takeProfit));
           tradeType = 'PROFIT';
-          // console.log('Sell @', takeProfit, tradeType);
+          if (debug) console.log('Profit @', takeProfit, tradeType);
         }
       });
       if (tradeType === 'OPEN') {
         store.dispatch(sell(regularMarketPrice));
         tradeType = 'CLOSED';
-        // console.log('Sell @', regularMarketPrice, tradeType);
+        if (debug) console.log('Closed @', regularMarketPrice, tradeType);
       }
 
-      // console.log(`${colName} > [${prevMarketDayLow}, ${prevMarketDayHigh}] ${signalPrice}`);
       console.log(`${colName} > ${store.getState().money}, ${tradeType}`);
-      // console.log();
+      if (debug) console.log();
     }
 
     console.log('Done', store.getState());
