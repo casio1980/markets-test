@@ -2,11 +2,11 @@
 const fs = require('fs');
 const yahooFinance = require('yahoo-finance');
 const minimist = require('minimist');
-const moment = require('moment');
-const { RAW_FOLDER, DEFAULT_FROM_DATE, DATE_FORMAT } = require('./js/constants');
+const { getCurrentDate } = require('./js/helpers');
+const { RAW_FOLDER, DEFAULT_FROM_DATE } = require('./js/constants');
 
 // node dl.js AAPL TSLA --from 2018-01-01 --to 2019-01-01
-const today = moment().format(DATE_FORMAT);
+const today = getCurrentDate();
 const { _: symbols, from = DEFAULT_FROM_DATE, to = today } = minimist(process.argv.slice(2));
 if (symbols.length === 0) {
   console.log('ERROR: At least one symbol should be specified');

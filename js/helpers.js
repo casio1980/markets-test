@@ -17,6 +17,16 @@ exports.requestYahooQuote = async options =>
     });
   });
 
+exports.requestYahooHistorical = async options =>
+  new Promise((resolve, reject) => {
+    yahooFinance.historical(options, (err, quotes) => {
+      if (err) reject(err);
+      else resolve(quotes);
+    }).catch((err) => {
+      reject(err);
+    });
+  });
+
 const addDimension = (array, dimension, name = 'item') => {
   const response = [];
   dimension.forEach((item) => {

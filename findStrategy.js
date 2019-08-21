@@ -77,6 +77,16 @@ const funcs = [ // TODO BUYs should be on top of SELLs
       : undefined;
   },
 
+  // function buyWhenPriceAndSMAGoUp(state, current, previous, params) {
+  //   const { priceBuy, prevPriceBuy, period } = params;
+  //   const priceGoesUp = current[priceBuy] > previous[prevPriceBuy];
+  //   const smaGoesUp = current[`sma_${period}`] > previous[`sma_${period}`];
+
+  //   return priceGoesUp && smaGoesUp
+  //     ? { type: BUY, price: current[priceBuy] }
+  //     : undefined;
+  // },
+
   function sellOnProfit(state, current, previous, params) {
     const { profit } = params;
     const profitablePrice = fmtNumber(state.price * (1 + profit));
