@@ -116,7 +116,7 @@ const SymbolType = new GraphQLObjectType({
         let client;
         try {
           client = await connect(process.env.DB_URL);
-          const db = client.db(process.env.DB_NAME);
+          const db = client.db(process.env.DB_NAME_QUOTES);
           const collection = db.collection(date);
 
           const query = { 'price.symbol': symbol };
@@ -140,7 +140,7 @@ const SymbolType = new GraphQLObjectType({
         let client;
         try {
           client = await connect(process.env.DB_URL);
-          const db = client.db(process.env.DB_NAME);
+          const db = client.db(process.env.DB_NAME_QUOTES);
           const collection = db.collection(date);
 
           const queryClosed = { 'price.symbol': symbol, 'price.marketState': CLOSED };
@@ -259,7 +259,7 @@ const QuotesQueryRootType = new GraphQLObjectType({
         let client;
         try {
           client = await connect(process.env.DB_URL);
-          const db = client.db(process.env.DB_NAME);
+          const db = client.db(process.env.DB_NAME_QUOTES);
           const collection = db.collection(date);
 
           const query = [{ $group: { _id: '$price.symbol' } }];
@@ -294,7 +294,7 @@ const QuotesQueryRootType = new GraphQLObjectType({
         let client;
         try {
           client = await connect(process.env.DB_URL);
-          const db = client.db(process.env.DB_NAME);
+          const db = client.db(process.env.DB_NAME_QUOTES);
           const collection = db.collection(date);
 
           const query = { 'price.symbol': symbol };

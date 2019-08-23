@@ -7,6 +7,7 @@ const { requestYahooHistorical, getCurrentDate } = require('../js/helpers');
 const { connect } = require('../js/database');
 const {
   CLOSE,
+  ADJ_CLOSE,
   DATE_FORMAT,
   DATE,
   HIGH,
@@ -42,6 +43,7 @@ function formatData(arr) {
     elem[DATE] = moment(elem[DATE]).format(DATE_FORMAT);
 
     elem[CLOSE] = fmtNumber(elem[CLOSE]);
+    elem[ADJ_CLOSE] = fmtNumber(elem[ADJ_CLOSE]);
     elem[HIGH] = fmtNumber(elem[HIGH]);
     elem[LOW] = fmtNumber(elem[LOW]);
     elem[OPEN] = fmtNumber(elem[OPEN]);
@@ -56,6 +58,20 @@ function applySMA(arr) {
     arr.forEach((elem, idx) => {
       // eslint-disable-next-line no-param-reassign
       elem[attr] = SMA(arr, idx, period);
+    });
+  });
+}
+
+function applySmaDelta(arr) {
+  SMA_PERIODS.forEach((period) => {
+    const attr = `sma_${period}`;
+    const attrDelta = `sma_${period}_delta`;
+    arr.forEach((elem, idx) => {
+      if (idx > 0) {
+        const prev = arr[idx - 1];
+        // eslint-disable-next-line no-param-reassign
+        elem[attrDelta] = fmtNumber(elem[attr] - prev[attr]);
+      }
     });
   });
 }
@@ -76,7 +92,7 @@ function applySMA(arr) {
 
     logger.trace('Connecting to DB...');
     client = await connect(process.env.DB_URL);
-    const db = client.db('historical');
+    const db = client.db(process.env.DB_NAME_HISTORICAL);
 
     logger.trace('Dropping historical database...');
     await db.dropDatabase();
@@ -88,6 +104,7 @@ function applySMA(arr) {
       sortByDate(symbolData);
       formatData(symbolData);
       applySMA(symbolData);
+      applySmaDelta(symbolData);
 
       symbolData.forEach((dateData) => {
         const date = dateData[DATE];

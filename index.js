@@ -33,24 +33,31 @@ console.log(`Processing ${symbol}...`);
   let client;
   try {
     client = await connect(process.env.DB_URL);
-    const db = client.db(process.env.DB_NAME);
-    const collectionInstances = await db.collections();
+    const dbQuotes = client.db(process.env.DB_NAME_QUOTES);
+    const dbHistorical = client.db(process.env.DB_NAME_HISTORICAL);
+    const collectionInstances = await dbQuotes.collections();
     const collections = collectionInstances.map(c => c.s.name).sort();
 
     const store = createStore(reducer);
 
     // eslint-disable-next-line no-restricted-syntax
-    for (const colName of collections) {
-      const collection = db.collection(colName);
+    for (const collectionName of collections) {
+      const quotes = dbQuotes.collection(collectionName);
+      const historical = dbHistorical.collection(collectionName);
 
       const queryPre = { 'price.symbol': symbol, 'price.marketState': PREMARKET };
       // eslint-disable-next-line no-await-in-loop
-      const [docPre] = await collection.find(queryPre).sort({ $natural: -1 }).limit(1).toArray();
+      const [docPre] = await quotes.find(queryPre).sort({ $natural: -1 }).limit(1).toArray();
       const { price: pricePre } = docPre || {};
 
       const queryRegular = { 'price.symbol': symbol, 'price.marketState': REGULAR };
       // eslint-disable-next-line no-await-in-loop
-      const docsRegular = await collection.find(queryRegular).sort({ $natural: 1 }).toArray();
+      const docsRegular = await quotes.find(queryRegular).sort({ $natural: 1 }).toArray();
+
+      const querySma = { symbol };
+      // eslint-disable-next-line no-await-in-loop
+      const [docSma] = await historical.find(querySma).toArray();
+      const { sma_7_delta: sma } = docSma || {}; // TODO
 
       const prevMarketDayHigh = get(pricePre, 'regularMarketDayHigh');
       const prevMarketDayLow = get(pricePre, 'regularMarketDayLow');
@@ -74,7 +81,7 @@ console.log(`Processing ${symbol}...`);
         regularMarketPrice = price.regularMarketPrice;
         // console.log(price);
 
-        if (!tradeType && regularMarketOpen > signalPrice) {
+        if (!tradeType && (regularMarketOpen > signalPrice) && (sma > 0)) {
           const buyPrice = regularMarketPrice;
           takeProfit = fmtNumber(buyPrice * (1 + strategy.profit));
           stopLoss = fmtNumber(buyPrice * (1 - strategy.stopLoss));
@@ -101,7 +108,7 @@ console.log(`Processing ${symbol}...`);
         if (debug) console.log('Closed @', regularMarketPrice, tradeType);
       }
 
-      console.log(`${colName} > ${store.getState().money}, ${tradeType}`);
+      console.log(`${collectionName} > ${store.getState().money}, ${sma} ${tradeType}`);
       if (debug) console.log();
     }
 

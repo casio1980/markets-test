@@ -30,7 +30,7 @@ const logger = log4js.getLogger(process.env.LOG_CATEGORY || 'default');
 
     logger.trace('Connecting to DB...');
     client = await connect(process.env.DB_URL);
-    const db = client.db(process.env.DB_NAME);
+    const db = client.db(process.env.DB_NAME_QUOTES);
     const collection = db.collection(getCurrentDate());
 
     const result = await collection.insertMany(_.values(quotes));

@@ -4,6 +4,7 @@ const moment = require('moment');
 const minimist = require('minimist');
 const {
   CLOSE,
+  ADJ_CLOSE,
   DATA_FOLDER,
   DATE_FORMAT,
   DATE,
@@ -27,6 +28,7 @@ function formatData(arr) {
     elem[DATE] = moment(elem[DATE]).format(DATE_FORMAT);
 
     elem[CLOSE] = fmtNumber(elem[CLOSE]);
+    elem[ADJ_CLOSE] = fmtNumber(elem[ADJ_CLOSE]);
     elem[HIGH] = fmtNumber(elem[HIGH]);
     elem[LOW] = fmtNumber(elem[LOW]);
     elem[OPEN] = fmtNumber(elem[OPEN]);

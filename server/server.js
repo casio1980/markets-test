@@ -43,7 +43,7 @@ server.get('/symbols', async (req, res, next) => {
   let client;
   try {
     client = await connect(process.env.DB_URL);
-    const db = client.db(process.env.DB_NAME);
+    const db = client.db(process.env.DB_NAME_QUOTES);
     const collection = db.collection(getCurrentDate());
 
     const query = [{ $group: { _id: '$price.symbol' } }];
@@ -151,7 +151,7 @@ server.get('/snap/', async (req, res, next) => {
     const collectionName = date || getCurrentDate();
 
     client = await connect(process.env.DB_URL);
-    const db = client.db(process.env.DB_NAME);
+    const db = client.db(process.env.DB_NAME_QUOTES);
 
     const collections = await db.collections();
     if (!collections.map(c => c.s.name).includes(collectionName)) {
@@ -197,7 +197,7 @@ server.get('/snap/:symbol', async (req, res, next) => {
     const collectionName = date || getCurrentDate();
 
     client = await connect(process.env.DB_URL);
-    const db = client.db(process.env.DB_NAME);
+    const db = client.db(process.env.DB_NAME_QUOTES);
 
     const collections = await db.collections();
     if (!collections.map(c => c.s.name).includes(collectionName)) {
