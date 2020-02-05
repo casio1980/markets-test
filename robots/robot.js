@@ -122,7 +122,8 @@ const api = new OpenAPI({ apiURL, secretToken, socketURL });
     console.log(portfolio);
 
     // TODO
-    api.candle({ figi: figiTWTR, interval: '1min' }, (x) => {
+    let rounds = 0;
+    const candleWatcher = api.candle({ figi: figiTWTR, interval: '1min' }, (x) => {
       // o: 33.48,
       // c: 33.49,
       // h: 33.49,
@@ -133,6 +134,12 @@ const api = new OpenAPI({ apiURL, secretToken, socketURL });
       // figi: 'BBG000H6HNW3'
       // ---
       logger.debug(x);
+      rounds += 1;
+      if (rounds === 1000) {
+        logger.debug('Unsubscribing from candles');
+        candleWatcher();
+        process.exit();
+      }
     });
   } catch (err) {
     logger.fatal(err);
