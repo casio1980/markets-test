@@ -8,5 +8,4 @@
 # 30-59/5 18 * * 1-5 cd /var/www/markets-test/jobs && ./quote.sh
 
 node quote.js
-
 exit 0
