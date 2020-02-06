@@ -2,19 +2,13 @@
 require('dotenv').config();
 const express = require('express');
 const graphqlHTTP = require('express-graphql');
+const OpenAPI = require('@tinkoff/invest-openapi-js-sdk');
 const log4js = require('log4js');
 const cors = require('cors');
-const { get, pick } = require('lodash');
-const schema = require('./src/schema.js');
+const schema = require('./src/schema');
+const { getSnap } = require('./src/snap');
 const { connect } = require('../js/database');
-const { getCurrentDate, fmtNumber } = require('../js/helpers');
-const {
-  CLOSED,
-  PREMARKET,
-  REGULAR,
-  LOW,
-} = require('../js/constants');
-const { bestStrategies } = require('../config');
+const { getCurrentDate } = require('../js/helpers');
 
 log4js.configure({
   appenders: {
@@ -30,9 +24,27 @@ log4js.configure({
 const logger = log4js.getLogger(process.env.LOG_CATEGORY || 'default');
 const server = express();
 const port = process.env.PORT;
+const isProduction = process.env.PRODUCTION === 'true';
 
 server.use(log4js.connectLogger(logger, { level: 'auto' }));
 server.use(cors());
+
+let apiURL;
+let secretToken;
+if (isProduction) {
+  // PRODUCTION mode
+  logger.trace('PRODUCTION mode');
+
+  apiURL = 'https://api-invest.tinkoff.ru/openapi';
+  secretToken = process.env.TOKEN;
+} else {
+  // SANDBOX mode
+  apiURL = 'https://api-invest.tinkoff.ru/openapi/sandbox/';
+  secretToken = process.env.SANDBOX_TOKEN;
+}
+
+const socketURL = 'wss://api-invest.tinkoff.ru/openapi/md/v1/md-openapi/ws';
+const api = new OpenAPI({ apiURL, secretToken, socketURL });
 
 server.use('/query', graphqlHTTP({
   schema,
@@ -43,7 +55,7 @@ server.get('/symbols', async (req, res, next) => {
   let client;
   try {
     client = await connect(process.env.DB_URL);
-    const db = client.db(process.env.DB_NAME_QUOTES);
+    const db = client.db(process.env.DB_NAME);
     const collection = db.collection(getCurrentDate());
 
     const query = [{ $group: { _id: '$price.symbol' } }];
@@ -56,94 +68,6 @@ server.get('/symbols', async (req, res, next) => {
   }
 });
 
-const getSnap = async (collection, symbolName) => {
-  const queryClosed = { 'price.symbol': symbolName, 'price.marketState': CLOSED };
-  const [docClosed] =
-    await collection.find(queryClosed).sort({ $natural: -1 }).limit(1).toArray();
-  const { price: priceClosed } = docClosed || {};
-
-  const queryPre = { 'price.symbol': symbolName, 'price.marketState': PREMARKET };
-  const [docPre] =
-    await collection.find(queryPre).sort({ $natural: -1 }).limit(1).toArray();
-  const { price: pricePre } = docPre || {};
-
-  const queryRegular = { 'price.symbol': symbolName, 'price.marketState': REGULAR };
-  const [docRegular] =
-    await collection.find(queryRegular).sort({ $natural: -1 }).limit(1).toArray();
-  const { price: priceRegular } = docRegular || {};
-
-  const status = get(priceRegular, 'marketState') || get(pricePre, 'marketState') || get(priceClosed, 'marketState');
-  const preMarketPrice = get(pricePre, 'preMarketPrice');
-  const prevMarketDayHigh = get(pricePre, 'regularMarketDayHigh');
-  const prevMarketDayLow = get(pricePre, 'regularMarketDayLow');
-  const regularMarketOpen = get(priceRegular, 'regularMarketOpen');
-
-  // TODO compute signal
-  const [strategy] = bestStrategies[symbolName];
-  const signalPrice = strategy.prevPriceBuy === LOW
-    ? prevMarketDayLow
-    : prevMarketDayHigh;
-  // const prevPriceBuy = get(pricePre, 'regularMarketDayHigh'); // high
-  // const priceBuy = get(priceRegular, 'regularMarketOpen'); // open
-
-  let signalBuy = false;
-  if (status === PREMARKET) {
-    signalBuy = preMarketPrice > signalPrice;
-  } else if (status === REGULAR) {
-    signalBuy = regularMarketOpen > signalPrice;
-  }
-
-  let buyPrice;
-  let takeProfit;
-  let stopLoss;
-  if (signalBuy) {
-    buyPrice = regularMarketOpen || preMarketPrice;
-    takeProfit = fmtNumber(buyPrice * (1 + strategy.profit));
-    stopLoss = fmtNumber(buyPrice * (1 - strategy.stopLoss));
-  }
-
-  let decisionType;
-  if (takeProfit < get(priceRegular, 'regularMarketDayHigh')) {
-    if (stopLoss > get(priceRegular, 'regularMarketDayLow')) {
-      decisionType = 'BOTH';
-    } else {
-      decisionType = 'PROFIT';
-    }
-  } else if (stopLoss > get(priceRegular, 'regularMarketDayLow')) {
-    decisionType = 'LOSS';
-  }
-
-  return {
-    status,
-    prev: pick(pricePre || priceClosed, [
-      'regularMarketDayHigh',
-      'regularMarketDayLow',
-      'regularMarketOpen',
-      'regularMarketPrice',
-    ]),
-    current: pick(priceRegular || pricePre, [
-      'preMarketPrice',
-      'regularMarketDayHigh',
-      'regularMarketDayLow',
-      'regularMarketOpen',
-      'regularMarketPrice',
-    ]),
-    strategy,
-    signalBuy,
-    decision: {
-      // preMarketPrice,
-      // prevMarketDayHigh,
-      signalPrice,
-      buyPrice,
-      takeProfit,
-      stopLoss,
-      decisionType,
-      // isProfit: takeProfit < get(priceRegular, 'regularMarketDayHigh'),
-      // isLoss: stopLoss > get(priceRegular, 'regularMarketDayLow'),
-    },
-  };
-};
-
 server.get('/snap/', async (req, res, next) => {
   let client;
   try {
@@ -151,7 +75,7 @@ server.get('/snap/', async (req, res, next) => {
     const collectionName = date || getCurrentDate();
 
     client = await connect(process.env.DB_URL);
-    const db = client.db(process.env.DB_NAME_QUOTES);
+    const db = client.db(process.env.DB_NAME);
 
     const collections = await db.collections();
     if (!collections.map(c => c.s.name).includes(collectionName)) {
@@ -197,7 +121,7 @@ server.get('/snap/:symbol', async (req, res, next) => {
     const collectionName = date || getCurrentDate();
 
     client = await connect(process.env.DB_URL);
-    const db = client.db(process.env.DB_NAME_QUOTES);
+    const db = client.db(process.env.DB_NAME);
 
     const collections = await db.collections();
     if (!collections.map(c => c.s.name).includes(collectionName)) {
@@ -213,7 +137,7 @@ server.get('/snap/:symbol', async (req, res, next) => {
       return;
     }
 
-    const result = await getSnap(collection, symbolName);
+    const result = await getSnap(api, collection, symbolName);
     res.json(result);
   } catch (err) {
     next(err);

@@ -134,7 +134,7 @@ const SymbolType = new GraphQLObjectType({
     snap: {
       type: SnapType,
       description: 'Snapshot for the symbol and date',
-      resolve: async (parent) => {
+      resolve: async (parent) => { // TODO DRY
         const { date, symbol } = parent;
 
         let client;

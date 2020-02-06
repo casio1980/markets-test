@@ -6,6 +6,8 @@ const { DATE_FORMAT } = require('./constants');
 exports.fmtNumber = number => +number.toFixed(2);
 
 exports.getCurrentDate = () => moment().format(DATE_FORMAT);
+exports.getPrevDate = () => moment().add(-1, 'days').format(DATE_FORMAT);
+exports.getNextDate = () => moment().add(1, 'days').format(DATE_FORMAT);
 
 exports.requestYahooQuote = async options =>
   new Promise((resolve, reject) => {
