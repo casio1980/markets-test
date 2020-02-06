@@ -9,18 +9,18 @@ const {
 const { bestStrategies } = require('../../config');
 
 module.exports = {
-  getSnap: async (api, collection, symbolName) => {
-    const queryClosed = { 'price.symbol': symbolName, 'price.marketState': CLOSED };
+  getSnap: async (api, collection, symbol) => {
+    const queryClosed = { 'price.symbol': symbol, 'price.marketState': CLOSED };
     const [docClosed] =
       await collection.find(queryClosed).sort({ $natural: -1 }).limit(1).toArray();
     const { price: priceClosed } = docClosed || {};
 
-    const queryPre = { 'price.symbol': symbolName, 'price.marketState': PREMARKET };
+    const queryPre = { 'price.symbol': symbol, 'price.marketState': PREMARKET };
     const [docPre] =
       await collection.find(queryPre).sort({ $natural: -1 }).limit(1).toArray();
     const { price: pricePre } = docPre || {};
 
-    const queryRegular = { 'price.symbol': symbolName, 'price.marketState': REGULAR };
+    const queryRegular = { 'price.symbol': symbol, 'price.marketState': REGULAR };
     const [docRegular] =
       await collection.find(queryRegular).sort({ $natural: -1 }).limit(1).toArray();
     const { price: priceRegular } = docRegular || {};
@@ -32,16 +32,16 @@ module.exports = {
     const regularMarketOpen = get(priceRegular, 'regularMarketOpen');
 
     // Tinkoff API
-    const { figi } = await api.searchOne({ ticker: symbolName });
+    const { figi } = await api.searchOne({ ticker: symbol });
     const { candles } = await api.candlesGet({
       figi,
       interval: 'day',
       from: `${getPrevDate()}T00:00:00.000Z`,
       to: `${getNextDate()}T00:00:00.000Z`,
     });
-    
+
     // TODO compute signal
-    const [strategy] = bestStrategies[symbolName];
+    const [strategy] = bestStrategies[symbol];
     const signalPrice = strategy.prevPriceBuy === LOW
       ? prevMarketDayLow
       : prevMarketDayHigh;
@@ -75,7 +75,8 @@ module.exports = {
       decisionType = 'LOSS';
     }
 
-    return {
+    const result = {
+      symbol,
       status,
       prev: pick(pricePre || priceClosed, [
         'regularMarketDayHigh',
@@ -105,5 +106,8 @@ module.exports = {
       },
       candles,
     };
+    result.current.status = status;
+
+    return result;
   },
 };

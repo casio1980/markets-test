@@ -1,7 +1,8 @@
 /* eslint-disable no-underscore-dangle */
-const { get, pick } = require('lodash');
+const { getSnap } = require('./snap');
 const { connect } = require('../../js/database');
-const { getCurrentDate, fmtNumber } = require('../../js/helpers');
+const { getAPI } = require('../../js/api');
+const { getCurrentDate } = require('../../js/helpers');
 const {
   GraphQLObjectType,
   GraphQLString,
@@ -11,14 +12,6 @@ const {
   GraphQLList,
   GraphQLSchema,
 } = require('graphql');
-const {
-  CLOSED,
-  LOW,
-  PREMARKET,
-  PREPRE,
-  REGULAR,
-} = require('../../js/constants');
-const { bestStrategies } = require('../../config');
 
 const QuoteType = new GraphQLObjectType({
   name: 'Quote',
@@ -41,6 +34,18 @@ const QuoteType = new GraphQLObjectType({
     regularMarketTime: { type: new GraphQLNonNull(GraphQLString) },
     regularMarketVolume: { type: new GraphQLNonNull(GraphQLString) },
     symbol: { type: new GraphQLNonNull(GraphQLString) },
+  }),
+});
+
+const CandleType = new GraphQLObjectType({
+  name: 'Candle',
+  fields: () => ({
+    o: { type: GraphQLFloat },
+    c: { type: GraphQLFloat },
+    h: { type: GraphQLFloat },
+    l: { type: GraphQLFloat },
+    v: { type: GraphQLFloat },
+    time: { type: GraphQLString },
   }),
 });
 
@@ -98,6 +103,11 @@ const SnapType = new GraphQLObjectType({
         }),
       }),
     },
+    candles: {
+      type: new GraphQLList(CandleType),
+      description: 'List of candles from Tinkoff API',
+      resolve: async ({ candles }) => candles,
+    },
   }),
 });
 
@@ -134,7 +144,7 @@ const SymbolType = new GraphQLObjectType({
     snap: {
       type: SnapType,
       description: 'Snapshot for the symbol and date',
-      resolve: async (parent) => { // TODO DRY
+      resolve: async (parent) => {
         const { date, symbol } = parent;
 
         let client;
@@ -143,93 +153,8 @@ const SymbolType = new GraphQLObjectType({
           const db = client.db(process.env.DB_NAME_QUOTES);
           const collection = db.collection(date);
 
-          const queryClosed = { 'price.symbol': symbol, 'price.marketState': CLOSED };
-          const [docClosed] =
-            await collection.find(queryClosed).sort({ $natural: -1 }).limit(1).toArray();
-          const { price: priceClosed } = docClosed || {};
-
-          const queryPre = { 'price.symbol': symbol, $or: [{ 'price.marketState': PREPRE }, { 'price.marketState': PREMARKET }] };
-          const [docPre] =
-            await collection.find(queryPre).sort({ $natural: -1 }).limit(1).toArray();
-          const { price: pricePre } = docPre || {};
-
-          const queryRegular = { 'price.symbol': symbol, 'price.marketState': REGULAR };
-          const [docRegular] =
-            await collection.find(queryRegular).sort({ $natural: -1 }).limit(1).toArray();
-          const { price: priceRegular } = docRegular || {};
-
-          const status = get(priceRegular, 'marketState') || get(pricePre, 'marketState') || get(priceClosed, 'marketState');
-          const preMarketPrice = get(pricePre, 'preMarketPrice');
-          const prevMarketDayHigh = get(pricePre, 'regularMarketDayHigh');
-          const prevMarketDayLow = get(pricePre, 'regularMarketDayLow');
-          const regularMarketOpen = get(priceRegular, 'regularMarketOpen');
-
-          // TODO compute signal
-          const [strategy] = bestStrategies[symbol];
-          const signalPrice = strategy.prevPriceBuy === LOW
-            ? prevMarketDayLow
-            : prevMarketDayHigh;
-          // const prevPriceBuy = get(pricePre, 'regularMarketDayHigh'); // high
-          // const priceBuy = get(priceRegular, 'regularMarketOpen'); // open
-
-          let signalBuy = false;
-          if (status === PREMARKET) {
-            signalBuy = preMarketPrice > signalPrice;
-          } else if (status === REGULAR) {
-            signalBuy = regularMarketOpen > signalPrice;
-          }
-
-          let buyPrice;
-          let takeProfit;
-          let stopLoss;
-          if (signalBuy) {
-            buyPrice = regularMarketOpen || preMarketPrice;
-            takeProfit = fmtNumber(buyPrice * (1 + strategy.profit));
-            stopLoss = fmtNumber(buyPrice * (1 - strategy.stopLoss));
-          }
-
-          let decisionType;
-          if (takeProfit < get(priceRegular, 'regularMarketDayHigh')) {
-            if (stopLoss > get(priceRegular, 'regularMarketDayLow')) {
-              decisionType = 'BOTH';
-            } else {
-              decisionType = 'PROFIT';
-            }
-          } else if (stopLoss > get(priceRegular, 'regularMarketDayLow')) {
-            decisionType = 'LOSS';
-          }
-
-          const result = {
-            symbol,
-            prev: pick(pricePre || priceClosed, [
-              'regularMarketDayHigh',
-              'regularMarketDayLow',
-              'regularMarketOpen',
-              'regularMarketPrice',
-            ]),
-            current: pick(priceRegular || pricePre, [
-              'preMarketPrice',
-              'regularMarketDayHigh',
-              'regularMarketDayLow',
-              'regularMarketOpen',
-              'regularMarketPrice',
-            ]),
-            strategy,
-            signalBuy,
-            decision: {
-              // preMarketPrice,
-              // prevMarketDayHigh,
-              signalPrice,
-              buyPrice,
-              takeProfit,
-              stopLoss,
-              decisionType,
-              // isProfit: takeProfit < get(priceRegular, 'regularMarketDayHigh'),
-              // isLoss: stopLoss > get(priceRegular, 'regularMarketDayLow'),
-            },
-          };
+          const result = await getSnap(getAPI(), collection, symbol);
           result.current.date = date;
-          result.current.status = status;
 
           return result;
         } catch (err) {

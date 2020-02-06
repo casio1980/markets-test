@@ -2,11 +2,11 @@
 require('dotenv').config();
 const express = require('express');
 const graphqlHTTP = require('express-graphql');
-const OpenAPI = require('@tinkoff/invest-openapi-js-sdk');
 const log4js = require('log4js');
 const cors = require('cors');
 const schema = require('./src/schema');
 const { getSnap } = require('./src/snap');
+const { getAPI } = require('../js/api');
 const { connect } = require('../js/database');
 const { getCurrentDate } = require('../js/helpers');
 
@@ -24,27 +24,10 @@ log4js.configure({
 const logger = log4js.getLogger(process.env.LOG_CATEGORY || 'default');
 const server = express();
 const port = process.env.PORT;
-const isProduction = process.env.PRODUCTION === 'true';
+const api = getAPI();
 
 server.use(log4js.connectLogger(logger, { level: 'auto' }));
 server.use(cors());
-
-let apiURL;
-let secretToken;
-if (isProduction) {
-  // PRODUCTION mode
-  logger.trace('PRODUCTION mode');
-
-  apiURL = 'https://api-invest.tinkoff.ru/openapi';
-  secretToken = process.env.TOKEN;
-} else {
-  // SANDBOX mode
-  apiURL = 'https://api-invest.tinkoff.ru/openapi/sandbox/';
-  secretToken = process.env.SANDBOX_TOKEN;
-}
-
-const socketURL = 'wss://api-invest.tinkoff.ru/openapi/md/v1/md-openapi/ws';
-const api = new OpenAPI({ apiURL, secretToken, socketURL });
 
 server.use('/query', graphqlHTTP({
   schema,
@@ -92,7 +75,7 @@ server.get('/snap/', async (req, res, next) => {
     for (const symbol of symbols) {
       const id = symbol._id;
       // eslint-disable-next-line no-await-in-loop
-      result[id] = await getSnap(collection, id);
+      result[id] = await getSnap(api, collection, id);
     }
 
     // TODO remove
