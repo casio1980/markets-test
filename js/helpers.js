@@ -4,10 +4,11 @@ const moment = require('moment');
 const { DATE_FORMAT } = require('./constants');
 
 exports.fmtNumber = number => +number.toFixed(2);
+exports.fmtDate = date => moment(date).format(DATE_FORMAT);
 
 exports.getCurrentDate = () => moment().format(DATE_FORMAT);
-exports.getPrevDate = () => moment().add(-1, 'days').format(DATE_FORMAT);
-exports.getNextDate = () => moment().add(1, 'days').format(DATE_FORMAT);
+exports.getPrevDate = date => moment(date).add(-1, 'days').format(DATE_FORMAT);
+exports.getNextDate = date => moment(date).add(1, 'days').format(DATE_FORMAT);
 
 exports.requestYahooQuote = async options =>
   new Promise((resolve, reject) => {

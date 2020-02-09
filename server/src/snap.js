@@ -9,7 +9,7 @@ const {
 const { bestStrategies } = require('../../config');
 
 module.exports = {
-  getSnap: async (api, collection, symbol) => {
+  getSnap: async (api, collection, symbol, date) => {
     const queryClosed = { 'price.symbol': symbol, 'price.marketState': CLOSED };
     const [docClosed] =
       await collection.find(queryClosed).sort({ $natural: -1 }).limit(1).toArray();
@@ -36,8 +36,8 @@ module.exports = {
     const { candles } = await api.candlesGet({
       figi,
       interval: 'day',
-      from: `${getPrevDate()}T00:00:00.000Z`,
-      to: `${getNextDate()}T00:00:00.000Z`,
+      from: `${getPrevDate(date)}T00:00:00.000Z`,
+      to: `${getNextDate(date)}T00:00:00.000Z`,
     });
 
     // TODO compute signal

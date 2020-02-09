@@ -2,7 +2,7 @@
 const { getSnap } = require('./snap');
 const { connect } = require('../../js/database');
 const { getAPI } = require('../../js/api');
-const { getCurrentDate } = require('../../js/helpers');
+const { getCurrentDate, fmtDate } = require('../../js/helpers');
 const {
   GraphQLObjectType,
   GraphQLString,
@@ -45,7 +45,7 @@ const CandleType = new GraphQLObjectType({
     h: { type: GraphQLFloat },
     l: { type: GraphQLFloat },
     v: { type: GraphQLFloat },
-    time: { type: GraphQLString },
+    date: { type: GraphQLString },
   }),
 });
 
@@ -106,7 +106,10 @@ const SnapType = new GraphQLObjectType({
     candles: {
       type: new GraphQLList(CandleType),
       description: 'List of candles from Tinkoff API',
-      resolve: async ({ candles }) => candles,
+      resolve: async ({ candles }) => candles.map(({ time, ...other }) => ({
+        ...other,
+        date: fmtDate(time),
+      })),
     },
   }),
 });
@@ -153,7 +156,7 @@ const SymbolType = new GraphQLObjectType({
           const db = client.db(process.env.DB_NAME_QUOTES);
           const collection = db.collection(date);
 
-          const result = await getSnap(getAPI(), collection, symbol);
+          const result = await getSnap(getAPI(), collection, symbol, date);
           result.current.date = date;
 
           return result;
