@@ -16,5 +16,17 @@ exports.getAPI = () => {
   }
 
   const socketURL = 'wss://api-invest.tinkoff.ru/openapi/md/v1/md-openapi/ws';
-  return new OpenAPI({ apiURL, secretToken, socketURL });
+  const result = new OpenAPI({ apiURL, secretToken, socketURL });
+
+  // Patching the existing API to support market orders
+  result.marketOrder = ({ figi, lots, operation }) =>
+    result.makeRequest(`/orders/market-order?figi=${figi}`, {
+      method: 'post',
+      params: {
+        lots,
+        operation,
+      },
+    });
+
+  return result;
 };

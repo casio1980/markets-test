@@ -4,6 +4,7 @@ const express = require('express');
 const graphqlHTTP = require('express-graphql');
 const log4js = require('log4js');
 const cors = require('cors');
+const bodyParser = require('body-parser');
 const schema = require('./src/schema');
 const { getSnap } = require('./src/snap');
 const { getAPI } = require('../js/api');
@@ -28,6 +29,7 @@ const api = getAPI();
 
 server.use(log4js.connectLogger(logger, { level: 'auto' }));
 server.use(cors());
+server.use(bodyParser.json());
 
 server.use('/query', graphqlHTTP({
   schema,
@@ -126,6 +128,42 @@ server.get('/snap/:symbol', async (req, res, next) => {
     next(err);
   } finally {
     if (client) client.close();
+  }
+});
+
+server.post('/placeOrder', async (req, res, next) => {
+  try {
+    // console.log('FROM >', req.headers.origin);
+
+    const {
+      ticker, operation, type, price,
+    } = req.body;
+
+    // orderId: "c541fda4-9ecb-48be-bcd3-544bf9c18aea"
+    // operation: "Buy"
+    // status: "Fill"
+    // requestedLots: 1
+    // executedLots: 1
+    let order;
+
+    const { figi } = await api.searchOne({ ticker });
+    if (type === 'limit') {
+      order = await api.limitOrder({
+        operation, figi, lots: 1, price,
+      });
+    } else if (type === 'market') {
+      order = await api.marketOrder({
+        operation, figi, lots: 1,
+      });
+    } else {
+      order = { err: 'Unknown order type.' };
+    }
+
+    res.json(order);
+  } catch (err) {
+    next(err);
+  } finally {
+    // if (client) client.close();
   }
 });
 
