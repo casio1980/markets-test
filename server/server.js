@@ -5,6 +5,7 @@ const graphqlHTTP = require('express-graphql');
 const log4js = require('log4js');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const requestIp = require('request-ip');
 const schema = require('./src/schema');
 const { getSnap } = require('./src/snap');
 const { getAPI } = require('../js/api');
@@ -30,6 +31,7 @@ const api = getAPI();
 server.use(log4js.connectLogger(logger, { level: 'auto' }));
 server.use(cors());
 server.use(bodyParser.json());
+server.use(requestIp.mw());
 
 server.use('/query', graphqlHTTP({
   schema,
@@ -37,6 +39,7 @@ server.use('/query', graphqlHTTP({
 }));
 
 server.get('/symbols', async (req, res, next) => {
+  logger.debug('>>>', req.clientIp);
   let client;
   try {
     client = await connect(process.env.DB_URL);
@@ -170,7 +173,7 @@ server.post('/placeOrder', async (req, res, next) => {
 // eslint-disable-next-line no-unused-vars
 server.use((err, req, res, next) => {
   logger.error(err);
-  res.status(500).send('Internal server error');
+  res.status(500).send(err);
 });
 
 // eslint-disable-next-line consistent-return
