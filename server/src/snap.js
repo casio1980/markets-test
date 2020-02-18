@@ -36,7 +36,7 @@ module.exports = {
     const { candles } = await api.candlesGet({
       figi,
       interval: 'day',
-      from: `${getPrevDate(date)}T00:00:00.000Z`,
+      from: `${getPrevDate(date, -10)}T00:00:00.000Z`,
       to: `${getNextDate(date)}T00:00:00.000Z`,
     });
 

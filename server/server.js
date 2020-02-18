@@ -39,7 +39,6 @@ server.use('/query', graphqlHTTP({
 }));
 
 server.get('/symbols', async (req, res, next) => {
-  logger.debug('>>>', req.clientIp);
   let client;
   try {
     client = await connect(process.env.DB_URL);
@@ -135,12 +134,16 @@ server.get('/snap/:symbol', async (req, res, next) => {
 });
 
 server.post('/placeOrder', async (req, res, next) => {
-  try {
-    // console.log('FROM >', req.headers.origin);
+  if (!req.clientIp.includes(process.env.IP_FILTER)) {
+    res.status(403).send('Forbidden');
+    return;
+  }
 
+  try {
     const {
       ticker, operation, type, price,
     } = req.body;
+    const { figi } = await api.searchOne({ ticker });
 
     // orderId: "c541fda4-9ecb-48be-bcd3-544bf9c18aea"
     // operation: "Buy"
@@ -149,7 +152,6 @@ server.post('/placeOrder', async (req, res, next) => {
     // executedLots: 1
     let order;
 
-    const { figi } = await api.searchOne({ ticker });
     if (type === 'limit') {
       order = await api.limitOrder({
         operation, figi, lots: 1, price,

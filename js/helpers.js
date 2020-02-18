@@ -7,7 +7,7 @@ exports.fmtNumber = number => +number.toFixed(2);
 exports.fmtDate = date => moment(date).format(DATE_FORMAT);
 
 exports.getCurrentDate = () => moment().format(DATE_FORMAT);
-exports.getPrevDate = date => moment(date).add(-1, 'days').format(DATE_FORMAT);
+exports.getPrevDate = (date, days = -1) => moment(date).add(days, 'days').format(DATE_FORMAT);
 exports.getNextDate = date => moment(date).add(1, 'days').format(DATE_FORMAT);
 
 exports.requestYahooQuote = async options =>
