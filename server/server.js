@@ -141,7 +141,7 @@ server.post('/placeOrder', async (req, res, next) => {
 
   try {
     const {
-      ticker, operation, type, price,
+      ticker, operation, type, lots, price,
     } = req.body;
     const { figi } = await api.searchOne({ ticker });
 
@@ -154,11 +154,11 @@ server.post('/placeOrder', async (req, res, next) => {
 
     if (type === 'limit') {
       order = await api.limitOrder({
-        operation, figi, lots: 1, price,
+        operation, figi, lots, price,
       });
     } else if (type === 'market') {
       order = await api.marketOrder({
-        operation, figi, lots: 1,
+        operation, figi, lots,
       });
     } else {
       order = { err: 'Unknown order type.' };
