@@ -1,51 +1,54 @@
 /* eslint-disable no-underscore-dangle */
-require('dotenv').config();
-const express = require('express');
-const graphqlHTTP = require('express-graphql');
-const log4js = require('log4js');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const requestIp = require('request-ip');
-const schema = require('./src/schema');
-const { getSnap } = require('./src/snap');
-const { getAPI } = require('../js/api');
-const { connect } = require('../js/database');
-const { getCurrentDate } = require('../js/helpers');
+require("dotenv").config();
+const express = require("express");
+const graphqlHTTP = require("express-graphql");
+const log4js = require("log4js");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const requestIp = require("request-ip");
+const schema = require("./src/schema");
+const { getSnap } = require("./src/snap");
+const { getAPI } = require("../js/api");
+const { connect } = require("../js/database");
+const { getCurrentDate } = require("../js/helpers");
 
 log4js.configure({
   appenders: {
-    console: { type: 'console' },
-    file: { type: 'file', filename: 'server.log' },
+    console: { type: "console" },
+    file: { type: "file", filename: "server.log" },
   },
   categories: {
-    server: { appenders: ['file'], level: 'debug' },
-    default: { appenders: ['console', 'file'], level: 'debug' },
+    server: { appenders: ["file"], level: "debug" },
+    default: { appenders: ["console", "file"], level: "debug" },
   },
 });
 
-const logger = log4js.getLogger(process.env.LOG_CATEGORY || 'default');
+const logger = log4js.getLogger(process.env.LOG_CATEGORY || "default");
 const server = express();
 const port = process.env.PORT;
 const api = getAPI();
 
-server.use(log4js.connectLogger(logger, { level: 'auto' }));
+server.use(log4js.connectLogger(logger, { level: "auto" }));
 server.use(cors());
 server.use(bodyParser.json());
 server.use(requestIp.mw());
 
-server.use('/query', graphqlHTTP({
-  schema,
-  graphiql: true, // TODO close me
-}));
+server.use(
+  "/query",
+  graphqlHTTP({
+    schema,
+    graphiql: true, // TODO close me
+  })
+);
 
-server.get('/symbols', async (req, res, next) => {
+server.get("/symbols", async (req, res, next) => {
   let client;
   try {
     client = await connect(process.env.DB_URL);
     const db = client.db(process.env.DB_NAME);
     const collection = db.collection(getCurrentDate());
 
-    const query = [{ $group: { _id: '$price.symbol' } }];
+    const query = [{ $group: { _id: "$price.symbol" } }];
     const docs = await collection.aggregate(query).toArray();
     res.json(docs);
   } catch (err) {
@@ -55,7 +58,7 @@ server.get('/symbols', async (req, res, next) => {
   }
 });
 
-server.get('/snap/', async (req, res, next) => {
+server.get("/snap/", async (req, res, next) => {
   let client;
   try {
     const { date } = req.query;
@@ -65,13 +68,13 @@ server.get('/snap/', async (req, res, next) => {
     const db = client.db(process.env.DB_NAME);
 
     const collections = await db.collections();
-    if (!collections.map(c => c.s.name).includes(collectionName)) {
-      res.status(404).send('Unknown collection');
+    if (!collections.map((c) => c.s.name).includes(collectionName)) {
+      res.status(404).send("Unknown collection");
       return;
     }
 
     const collection = db.collection(collectionName);
-    const querySymbols = [{ $group: { _id: '$price.symbol' } }];
+    const querySymbols = [{ $group: { _id: "$price.symbol" } }];
     const symbols = await collection.aggregate(querySymbols).toArray();
 
     const result = {};
@@ -99,7 +102,7 @@ server.get('/snap/', async (req, res, next) => {
   }
 });
 
-server.get('/snap/:symbol', async (req, res, next) => {
+server.get("/snap/:symbol", async (req, res, next) => {
   let client;
   try {
     const { symbol } = req.params;
@@ -111,16 +114,16 @@ server.get('/snap/:symbol', async (req, res, next) => {
     const db = client.db(process.env.DB_NAME);
 
     const collections = await db.collections();
-    if (!collections.map(c => c.s.name).includes(collectionName)) {
-      res.status(404).send('Unknown collection');
+    if (!collections.map((c) => c.s.name).includes(collectionName)) {
+      res.status(404).send("Unknown collection");
       return;
     }
 
     const collection = db.collection(collectionName);
-    const queryHasSymbol = { 'price.symbol': symbolName };
+    const queryHasSymbol = { "price.symbol": symbolName };
     const hasSymbol = await collection.findOne(queryHasSymbol);
     if (!hasSymbol) {
-      res.status(404).send('Unknown symbol');
+      res.status(404).send("Unknown symbol");
       return;
     }
 
@@ -133,16 +136,33 @@ server.get('/snap/:symbol', async (req, res, next) => {
   }
 });
 
-server.post('/placeOrder', async (req, res, next) => {
+server.get("/history/:ticker", async (req, res, next) => {
+  try {
+    const { ticker } = req.params;
+    const { figi } = await api.searchOne({ ticker });
+    const candles = await api.candlesGet({
+      figi,
+      interval: "1min",
+      from: "2020-04-03T00:00:00Z",
+      to: "2020-04-04T00:00:00Z",
+    });
+
+    res.json(candles);
+  } catch (err) {
+    next(err);
+  } finally {
+    // if (client) client.close();
+  }
+});
+
+server.post("/placeOrder", async (req, res, next) => {
   if (!req.clientIp.includes(process.env.IP_FILTER)) {
-    res.status(403).send('Forbidden');
+    res.status(403).send("Forbidden");
     return;
   }
 
   try {
-    const {
-      ticker, operation, type, lots, price,
-    } = req.body;
+    const { ticker, operation, type, lots, price } = req.body;
     const { figi } = await api.searchOne({ ticker });
 
     // orderId: "c541fda4-9ecb-48be-bcd3-544bf9c18aea"
@@ -152,16 +172,21 @@ server.post('/placeOrder', async (req, res, next) => {
     // executedLots: 1
     let order;
 
-    if (type === 'limit') {
+    if (type === "limit") {
       order = await api.limitOrder({
-        operation, figi, lots, price,
+        operation,
+        figi,
+        lots,
+        price,
       });
-    } else if (type === 'market') {
+    } else if (type === "market") {
       order = await api.marketOrder({
-        operation, figi, lots,
+        operation,
+        figi,
+        lots,
       });
     } else {
-      order = { err: 'Unknown order type.' };
+      order = { err: "Unknown order type." };
     }
 
     res.json(order);
