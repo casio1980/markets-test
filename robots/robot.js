@@ -1,52 +1,127 @@
 /* eslint-disable func-names */
-require('dotenv').config();
-const log4js = require('log4js');
-const OpenAPI = require('@tinkoff/invest-openapi-js-sdk');
+require("dotenv").config();
+const log4js = require("log4js");
+const { getAPI } = require("../js/api");
 
-const figiUSD = 'BBG0013HGFT4';
-const figiTWTR = 'BBG000H6HNW3';
+const { OPEN } = require("../js/constants");
+
+const figiUSD = "BBG0013HGFT4";
+const figiTWTR = "BBG000H6HNW3";
 
 log4js.configure({
   appenders: {
-    console: { type: 'console' },
-    file: { type: 'file', filename: 'robot.log' },
+    console: { type: "console" },
+    file: { type: "file", filename: "robot.log" },
   },
   categories: {
-    server: { appenders: ['file'], level: 'trace' },
-    default: { appenders: ['console', 'file'], level: 'trace' },
+    server: { appenders: ["file"], level: "trace" },
+    default: { appenders: ["console", "file"], level: "trace" },
   },
 });
 
-const logger = log4js.getLogger(process.env.LOG_CATEGORY || 'default');
-const isProduction = process.env.PRODUCTION === 'true';
+const logger = log4js.getLogger(process.env.LOG_CATEGORY || "default");
+const isProduction = process.env.PRODUCTION === "true";
 
-let apiURL;
-let secretToken;
-if (isProduction) {
-  // PRODUCTION mode
-  logger.trace('PRODUCTION mode');
+const api = getAPI();
 
-  apiURL = 'https://api-invest.tinkoff.ru/openapi';
-  secretToken = process.env.TOKEN;
-} else {
-  // SANDBOX mode
-  apiURL = 'https://api-invest.tinkoff.ru/openapi/sandbox/';
-  secretToken = process.env.SANDBOX_TOKEN;
-}
-
-const socketURL = 'wss://api-invest.tinkoff.ru/openapi/md/v1/md-openapi/ws';
-const api = new OpenAPI({ apiURL, secretToken, socketURL });
-
-// const symbols = process.env.SYMBOLS.replace(/ /g, '').split(','); // ['TSLA', 'AMZN', 'AAPL']
+const strategy = {
+  priceBuy: OPEN,
+  prevPriceBuy: OPEN,
+  profit: 0.025,
+  stopLoss: 0.001,
+};
+const LOTS = 1;
 
 (async function () {
   try {
-    // const [ticker] = symbols;
-
     if (!isProduction) {
       await api.sandboxClear();
-      await api.setCurrenciesBalance({ currency: 'USD', balance: 1000 });
+      await api.setCurrenciesBalance({ currency: "USD", balance: 10000 });
+    } else {
+      console.log("*** PRODUCTION MODE ***");
+
+      const { positions } = await api.portfolio();
+      const hasPosition = !!positions.find((el) => el.figi === figiTWTR);
+      if (hasPosition) {
+        console.log("There is an open position, terminating.");
+        process.exit();
+      }
     }
+
+    let prevCandle = null;
+    let position = null;
+    const candleWatcher = api.candle(
+      { figi: figiTWTR, interval: "1min" },
+      async (candle) => {
+        const { time, o, c, v } = candle;
+
+        if (!prevCandle) {
+          prevCandle = candle;
+        }
+
+        if (!position && o > prevCandle.o) {
+          try {
+            const order = await api.marketOrder({
+              operation: "Buy",
+              figi: figiTWTR,
+              lots: LOTS,
+            });
+
+            const { profit, stopLoss } = strategy;
+            position = {
+              price: o,
+              takeProfit: o * (1 + profit),
+              stopLoss: o * (1 - stopLoss),
+            };
+            logger.debug(
+              `BUY @ ${o} | Profit: ${position.takeProfit}, Loss: ${position.stopLoss}`
+            );
+          } catch (err) {
+            logger.fatal(err);
+          }
+        }
+
+        if (position) {
+          const { takeProfit, stopLoss } = position;
+          if (c >= takeProfit || stopLoss >= c) {
+            try {
+              const order = await api.marketOrder({
+                operation: "Sell",
+                figi: figiTWTR,
+                lots: LOTS,
+              });
+              position = null;
+              logger.debug(`SELL @ ${c}`);
+            } catch (err) {
+              logger.fatal(err);
+            }
+          }
+        }
+
+        if (time !== prevCandle.time) {
+          prevCandle = candle;
+        }
+
+        logger.debug(">", time, o, c, v);
+
+        // o: 33.48,
+        // c: 33.49,
+        // h: 33.49,
+        // l: 33.48,
+        // v: 1000,
+        // time: '2020-02-05T17:01:00Z',
+        // interval: '1min',
+        // figi: 'BBG000H6HNW3'
+        // ---
+
+        // rounds += 1;
+        // if (rounds === 5) {
+        //   logger.debug("Unsubscribing from candles");
+        //   candleWatcher();
+        //   process.exit();
+        // }
+      }
+    );
 
     // const { figi } = await api.searchOne({ ticker });
     // const stocks = await api.stocks(); // all available instruments
@@ -115,35 +190,11 @@ const api = new OpenAPI({ apiURL, secretToken, socketURL });
     // });
     // console.log(orderBuy);
 
-    const orders = await api.orders(); // all available orders => []
-    console.log(orders);
-
-    const portfolio = await api.portfolio(); // all positions in my portfolio
-    console.log(portfolio);
-
-    // TODO
-    let rounds = 0;
-    const candleWatcher = api.candle({ figi: figiTWTR, interval: '1min' }, (x) => {
-      // o: 33.48,
-      // c: 33.49,
-      // h: 33.49,
-      // l: 33.48,
-      // v: 1000,
-      // time: '2020-02-05T17:01:00Z',
-      // interval: '1min',
-      // figi: 'BBG000H6HNW3'
-      // ---
-      logger.debug(x);
-      rounds += 1;
-      if (rounds === 1000) {
-        logger.debug('Unsubscribing from candles');
-        candleWatcher();
-        process.exit();
-      }
-    });
+    // const orders = await api.orders(); // all available orders => []
+    // const portfolio = await api.portfolio(); // all positions in my portfolio
   } catch (err) {
     logger.fatal(err);
   } finally {
     // if (client) client.close();
   }
-}());
+})();
