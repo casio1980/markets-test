@@ -4,6 +4,7 @@ const log4js = require("log4js");
 const { getAPI } = require("../js/api");
 
 const { OPEN } = require("../js/constants");
+const { fmtNumber } = require("../js/helpers");
 
 const figiUSD = "BBG0013HGFT4";
 const figiTWTR = "BBG000H6HNW3";
@@ -57,6 +58,10 @@ const LOTS = 1;
 
         if (!prevCandle) {
           prevCandle = candle;
+
+          const { positions } = await api.portfolio();
+          const usd = positions.find((el) => el.figi === figiUSD);
+          console.log(usd);
         }
 
         if (!position && o > prevCandle.o) {
@@ -70,12 +75,16 @@ const LOTS = 1;
             const { profit, stopLoss } = strategy;
             position = {
               price: o,
-              takeProfit: o * (1 + profit),
-              stopLoss: o * (1 - stopLoss),
+              takeProfit: fmtNumber(o * (1 + profit)),
+              stopLoss: fmtNumber(o * (1 - stopLoss)),
             };
             logger.debug(
               `BUY @ ${o} | Profit: ${position.takeProfit}, Loss: ${position.stopLoss}`
             );
+
+            const { positions } = await api.portfolio();
+            const usd = positions.find((el) => el.figi === figiUSD);
+            console.log(usd);
           } catch (err) {
             logger.fatal(err);
           }
@@ -92,6 +101,10 @@ const LOTS = 1;
               });
               position = null;
               logger.debug(`SELL @ ${c}`);
+
+              const { positions } = await api.portfolio();
+              const usd = positions.find((el) => el.figi === figiUSD);
+              console.log(usd);
             } catch (err) {
               logger.fatal(err);
             }
@@ -102,7 +115,7 @@ const LOTS = 1;
           prevCandle = candle;
         }
 
-        logger.debug(">", time, o, c, v);
+        logger.debug(`${time} | o: ${o}, c: ${c}, vol: ${v}`);
 
         // o: 33.48,
         // c: 33.49,
