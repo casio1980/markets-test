@@ -143,8 +143,8 @@ server.get("/history/:ticker", async (req, res, next) => {
     const candles = await api.candlesGet({
       figi,
       interval: "1min",
-      from: "2020-04-03T00:00:00Z",
-      to: "2020-04-04T00:00:00Z",
+      from: "2020-04-14T00:00:00Z",
+      to: "2020-04-15T00:00:00Z",
     });
 
     res.json(candles);

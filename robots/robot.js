@@ -28,7 +28,7 @@ const api = getAPI();
 const strategy = {
   priceBuy: OPEN,
   prevPriceBuy: OPEN,
-  profit: 0.025,
+  profit: 0.01,
   stopLoss: 0.001,
 };
 const LOTS = 1;
@@ -57,16 +57,18 @@ const LOTS = 1;
         const { time, o, c, v } = candle;
 
         if (!prevCandle) {
-          prevCandle = candle;
-
+          // init the reference candle
           const { positions } = await api.portfolio();
           const usd = positions.find((el) => el.figi === figiUSD);
           console.log(usd);
+
+          logger.debug(`${time} | o: ${o}, c: ${c}, vol: ${v}`);
+          prevCandle = candle;
         }
 
         if (!position && o > prevCandle.o) {
           try {
-            const order = await api.marketOrder({
+            api.marketOrder({
               operation: "Buy",
               figi: figiTWTR,
               lots: LOTS,
@@ -74,48 +76,66 @@ const LOTS = 1;
 
             const { profit, stopLoss } = strategy;
             position = {
+              status: "unconfirmed",
               price: o,
               takeProfit: fmtNumber(o * (1 + profit)),
               stopLoss: fmtNumber(o * (1 - stopLoss)),
             };
-            logger.debug(
-              `BUY @ ${o} | Profit: ${position.takeProfit}, Loss: ${position.stopLoss}`
-            );
-
-            const { positions } = await api.portfolio();
-            const usd = positions.find((el) => el.figi === figiUSD);
-            console.log(usd);
           } catch (err) {
             logger.fatal(err);
           }
         }
 
-        if (position) {
+        if (position && position.status === "unconfirmed") {
+          const { positions } = await api.portfolio();
+          const usd = positions.find((el) => el.figi === figiUSD);
+          const twtr = positions.find((el) => el.figi === figiTWTR);
+
+          if (!!twtr) {
+            position.status = "confirmed";
+
+            logger.debug(
+              `BUY @ ${o} | Profit: ${position.takeProfit}, Loss: ${position.stopLoss}`
+            );
+            console.log(usd);
+            console.log(twtr);
+          }
+        }
+
+        if (position && position.status === "confirmed") {
           const { takeProfit, stopLoss } = position;
           if (c >= takeProfit || stopLoss >= c) {
             try {
-              const order = await api.marketOrder({
+              api.marketOrder({
                 operation: "Sell",
                 figi: figiTWTR,
                 lots: LOTS,
               });
-              position = null;
-              logger.debug(`SELL @ ${c}`);
-
-              const { positions } = await api.portfolio();
-              const usd = positions.find((el) => el.figi === figiUSD);
-              console.log(usd);
+              position = { ...position, status: "closed", closed: c };
             } catch (err) {
               logger.fatal(err);
             }
           }
         }
 
-        if (time !== prevCandle.time) {
-          prevCandle = candle;
+        if (position && position.status === "closed") {
+          const { positions } = await api.portfolio();
+          const usd = positions.find((el) => el.figi === figiUSD);
+          const twtr = positions.find((el) => el.figi === figiTWTR);
+
+          if (!twtr) {
+            logger.debug(`SELL @ ${position.closed}`);
+            console.log(usd);
+
+            position = null;
+          }
         }
 
-        logger.debug(`${time} | o: ${o}, c: ${c}, vol: ${v}`);
+        if (time !== prevCandle.time) {
+          // update the reference candle
+          logger.debug(`${time} | o: ${o}, c: ${c}, vol: ${v}`);
+          prevCandle = candle;
+        }
 
         // o: 33.48,
         // c: 33.49,

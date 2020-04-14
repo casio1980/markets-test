@@ -128,14 +128,16 @@ const decisionFunc = (store, current, previous, params) => {
       const { position } = store.getState();
       if (decision.type === BUY && !position) {
         store.dispatch(buy(decision.price));
-        console.log(`${current.time}: ${decision.name} @ ${decision.price}`);
+        if (strategy.length === 1)
+          console.log(`${current.time}: ${decision.name} @ ${decision.price}`);
       } else if (decision.type === SELL && position === LONG) {
         store.dispatch(sell(decision.price));
-        console.log(
-          `${current.time}: ${decision.name} @ ${decision.price} -> ${
-            store.getState().money
-          }`
-        );
+        if (strategy.length === 1)
+          console.log(
+            `${current.time}: ${decision.name} @ ${decision.price} -> ${
+              store.getState().money
+            }`
+          );
       }
     }
   });
@@ -157,21 +159,26 @@ const results = [];
 //   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.03, stopLoss: 0.005 },
 // ];
 // const strategy = [
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.025, stopLoss: 0.001 }, // best
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.025, stopLoss: 0.002 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.025, stopLoss: 0.003 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.025, stopLoss: 0.004 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.025, stopLoss: 0.005 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.025, stopLoss: 0.006 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.025, stopLoss: 0.007 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.025, stopLoss: 0.008 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.025, stopLoss: 0.009 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.025, stopLoss: 0.01 },
+//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.001 }, // best
+//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.002 },
+//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.003 },
+//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.004 },
+//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.005 },
+//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.006 },
+//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.007 },
+//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.008 },
+//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.009 },
+//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.01 },
 // ];
 
 const strategy = [
-  { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.025, stopLoss: 0.001 },
+  // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.015, stopLoss: 0.001 }, // 28.38% | 28.32%
+  { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.01, stopLoss: 0.001 }, // 24.34% | 27.35%
+  // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.001 }, // 21.48% | 23.7%
+  // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.02, stopLoss: 0.001 }, // 19.33% | 17.84%
+  // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.025, stopLoss: 0.001 }, // 15.84% | 16.34%
 ];
+
 strategy.forEach((item) => {
   const store = createStore(reducer);
 
