@@ -11,7 +11,7 @@ module.exports = {
   PREMARKET: "PRE",
   REGULAR: "REGULAR",
 
-  INITIAL_MONEY: 10000,
+  INITIAL_MONEY: 1000,
   COMMISSION: 0.0005, // 0.003,
 
   ADJ_CLOSE: "adjClose",

@@ -171,12 +171,26 @@ const results = [];
 //   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.01 },
 // ];
 
+// const strategy = [
+//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.0006 },
+//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.0007 },
+//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.0008 },
+//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.0009 },
+//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.001 },
+//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.0011 },
+//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.0012 },
+//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.0013 },
+//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.0014 },
+// ];
+
 const strategy = [
-  // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.015, stopLoss: 0.001 }, // 28.38% | 28.32%
-  { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.01, stopLoss: 0.001 }, // 24.34% | 27.35%
-  // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.001 }, // 21.48% | 23.7%
-  // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.02, stopLoss: 0.001 }, // 19.33% | 17.84%
-  // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.025, stopLoss: 0.001 }, // 15.84% | 16.34%
+  { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.0006 }, // ? | 53.84% | 54.39%
+  // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.001 }, // ? | 34.45% | 32.73%
+  // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.015, stopLoss: 0.001 }, // 28.38% | 28.32% | 28.6%
+  // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.01, stopLoss: 0.001 }, // 24.34% | 27.35% | 27.71%
+  // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.001 }, // 21.48% | 23.7% | 23.11%
+  // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.02, stopLoss: 0.001 }, // 19.33% | 17.84% | 20%
+  // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.025, stopLoss: 0.001 }, // 15.84% | 16.34% | 19.62%
 ];
 
 strategy.forEach((item) => {

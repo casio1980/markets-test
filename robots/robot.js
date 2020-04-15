@@ -28,7 +28,7 @@ const api = getAPI();
 const strategy = {
   priceBuy: OPEN,
   prevPriceBuy: OPEN,
-  profit: 0.01,
+  profit: 0.009,
   stopLoss: 0.001,
   lots: 1,
 };
