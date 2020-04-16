@@ -3,7 +3,7 @@ require("dotenv").config();
 const log4js = require("log4js");
 const { getAPI } = require("../js/api");
 
-const { OPEN } = require("../js/constants");
+const { OPEN, LOW } = require("../js/constants");
 const { fmtNumber } = require("../js/helpers");
 
 const figiUSD = "BBG0013HGFT4";
@@ -27,9 +27,9 @@ const api = getAPI();
 
 const strategy = {
   priceBuy: OPEN,
-  prevPriceBuy: OPEN,
+  prevPriceBuy: LOW,
   profit: 0.009,
-  stopLoss: 0.001,
+  stopLoss: 0.0006,
   lots: 1,
 };
 
@@ -40,6 +40,122 @@ const logBalance = async (portfolio) => {
   const balanceStr = `Balance is ${usd.balance} USD`;
   const twtrStr = twtr ? ` | ${twtr.ticker}: ${twtr.balance}` : "";
   logger.info(balanceStr + twtrStr);
+};
+
+let candleWatcher = null;
+let subscribeTimer = null;
+
+let prevCandle = null;
+let position = null;
+
+const mainLoop = async (candle) => {
+  const { time, o, c, v } = candle;
+
+  clearTimeout(subscribeTimer);
+  subscribeTimer = setTimeout(() => {
+    candleWatcher();
+    candleWatcher = null;
+  }, 60000);
+
+  if (!prevCandle) {
+    // init the reference candle
+    prevCandle = candle;
+    await logBalance();
+  }
+
+  if (!position && o > prevCandle.o) {
+    const { profit, stopLoss, lots } = strategy;
+    position = {
+      status: "unconfirmed",
+      price: o,
+      lots,
+      takeProfit: fmtNumber(o * (1 + profit)),
+      stopLoss: fmtNumber(o * (1 - stopLoss)),
+    };
+
+    api.marketOrder({
+      operation: "Buy",
+      figi: figiTWTR,
+      lots,
+    });
+  }
+
+  if (position && position.status === "unconfirmed") {
+    const portfolio = await api.portfolio();
+    const { positions } = portfolio;
+    const twtr = positions.find((el) => el.figi === figiTWTR);
+
+    if (!!twtr) {
+      position.status = "confirmed";
+
+      logger.info(
+        `BUY @ ${o} | Profit: ${position.takeProfit}, Loss: ${position.stopLoss}`
+      );
+      logBalance(portfolio);
+    }
+  }
+
+  if (position && position.status === "confirmed") {
+    const { takeProfit, stopLoss, lots } = position;
+    const isProfit = c >= takeProfit;
+    const isLoss = stopLoss >= c;
+    if (isProfit || isLoss) {
+      try {
+        api.marketOrder({
+          operation: "Sell",
+          figi: figiTWTR,
+          lots,
+        });
+        position = {
+          ...position,
+          status: "closed",
+          type: isProfit ? "PROFIT" : "LOSS",
+          closed: c,
+        };
+      } catch (err) {
+        logger.fatal(err);
+      }
+    }
+  }
+
+  if (position && position.status === "closed") {
+    const portfolio = await api.portfolio();
+    const { positions } = portfolio;
+    const twtr = positions.find((el) => el.figi === figiTWTR);
+
+    if (!twtr) {
+      const { type, closed } = position;
+      logger.info(`${type} @ ${closed}`);
+      logBalance(portfolio);
+
+      position = null;
+    }
+  }
+
+  if (time !== prevCandle.time) {
+    // update the reference candle
+    prevCandle = candle;
+    process.stdout.write("\n");
+  }
+
+  process.stdout.write(`${time} | o: ${o}, c: ${c}, vol: ${v}\r`);
+
+  // o: 33.48,
+  // c: 33.49,
+  // h: 33.49,
+  // l: 33.48,
+  // v: 1000,
+  // time: '2020-02-05T17:01:00Z',
+  // interval: '1min',
+  // figi: 'BBG000H6HNW3'
+  // ---
+
+  // rounds += 1;
+  // if (rounds === 5) {
+  //   logger.debug("Unsubscribing from candles");
+  //   candleWatcher();
+  //   process.exit();
+  // }
 };
 
 (async function () {
@@ -58,118 +174,16 @@ const logBalance = async (portfolio) => {
       }
     }
 
-    let prevCandle = null;
-    let position = null;
-    const candleWatcher = api.candle(
-      { figi: figiTWTR, interval: "1min" },
-      async (candle) => {
-        const { time, o, c, v } = candle;
-
-        if (!prevCandle) {
-          // init the reference candle
-          prevCandle = candle;
-
-          logger.debug(`${time} | o: ${o}, c: ${c}, vol: ${v}`);
-          logBalance();
-        }
-
-        if (!position && o > prevCandle.o) {
-          try {
-            const { profit, stopLoss, lots } = strategy;
-            position = {
-              status: "unconfirmed",
-              price: o,
-              lots,
-              takeProfit: fmtNumber(o * (1 + profit)),
-              stopLoss: fmtNumber(o * (1 - stopLoss)),
-            };
-
-            api.marketOrder({
-              operation: "Buy",
-              figi: figiTWTR,
-              lots,
-            });
-          } catch (err) {
-            logger.fatal(err);
-          }
-        }
-
-        if (position && position.status === "unconfirmed") {
-          const portfolio = await api.portfolio();
-          const { positions } = portfolio;
-          const twtr = positions.find((el) => el.figi === figiTWTR);
-
-          if (!!twtr) {
-            position.status = "confirmed";
-
-            logger.info(
-              `BUY @ ${o} | Profit: ${position.takeProfit}, Loss: ${position.stopLoss}`
-            );
-            logBalance(portfolio);
-          }
-        }
-
-        if (position && position.status === "confirmed") {
-          const { takeProfit, stopLoss, lots } = position;
-          const isProfit = c >= takeProfit;
-          const isLoss = stopLoss >= c;
-          if (isProfit || isLoss) {
-            try {
-              api.marketOrder({
-                operation: "Sell",
-                figi: figiTWTR,
-                lots,
-              });
-              position = {
-                ...position,
-                status: "closed",
-                type: isProfit ? "PROFIT" : "LOSS",
-                closed: c,
-              };
-            } catch (err) {
-              logger.fatal(err);
-            }
-          }
-        }
-
-        if (position && position.status === "closed") {
-          const portfolio = await api.portfolio();
-          const { positions } = portfolio;
-          const twtr = positions.find((el) => el.figi === figiTWTR);
-
-          if (!twtr) {
-            const { type, closed } = position;
-            logger.info(`${type} @ ${closed}`);
-            logBalance(portfolio);
-
-            position = null;
-          }
-        }
-
-        if (time !== prevCandle.time) {
-          // update the reference candle
-          logger.debug(`${time} | o: ${o}, c: ${c}, vol: ${v}`);
-          prevCandle = candle;
-        }
-
-        // o: 33.48,
-        // c: 33.49,
-        // h: 33.49,
-        // l: 33.48,
-        // v: 1000,
-        // time: '2020-02-05T17:01:00Z',
-        // interval: '1min',
-        // figi: 'BBG000H6HNW3'
-        // ---
-
-        // rounds += 1;
-        // if (rounds === 5) {
-        //   logger.debug("Unsubscribing from candles");
-        //   candleWatcher();
-        //   process.exit();
-        // }
+    candleWatcher = api.candle({ figi: figiTWTR, interval: "1min" }, mainLoop);
+    setInterval(() => {
+      if (!candleWatcher) {
+        logger.debug("Resubscribed");
+        candleWatcher = api.candle(
+          { figi: figiTWTR, interval: "1min" },
+          mainLoop
+        );
       }
-    );
+    }, 60000);
 
     // const { figi } = await api.searchOne({ ticker });
     // const stocks = await api.stocks(); // all available instruments
@@ -243,6 +257,6 @@ const logBalance = async (portfolio) => {
   } catch (err) {
     logger.fatal(err);
   } finally {
-    // if (client) client.close();
+    //
   }
 })();

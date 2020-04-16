@@ -172,19 +172,20 @@ const results = [];
 // ];
 
 // const strategy = [
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.0006 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.0007 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.0008 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.0009 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.001 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.0011 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.0012 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.0013 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.0014 },
+//   { priceBuy: OPEN, prevPriceBuy: LOW, profit: 0.009, stopLoss: 0.0006 },
+//   { priceBuy: OPEN, prevPriceBuy: LOW, profit: 0.009, stopLoss: 0.0007 },
+//   { priceBuy: OPEN, prevPriceBuy: LOW, profit: 0.009, stopLoss: 0.0008 },
+//   { priceBuy: OPEN, prevPriceBuy: LOW, profit: 0.009, stopLoss: 0.0009 },
+//   { priceBuy: OPEN, prevPriceBuy: LOW, profit: 0.009, stopLoss: 0.001 },
+//   { priceBuy: OPEN, prevPriceBuy: LOW, profit: 0.009, stopLoss: 0.0011 },
+//   { priceBuy: OPEN, prevPriceBuy: LOW, profit: 0.009, stopLoss: 0.0012 },
+//   { priceBuy: OPEN, prevPriceBuy: LOW, profit: 0.009, stopLoss: 0.0013 },
+//   { priceBuy: OPEN, prevPriceBuy: LOW, profit: 0.009, stopLoss: 0.0014 },
 // ];
 
 const strategy = [
-  { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.0006 }, // ? | 53.84% | 54.39%
+  { priceBuy: OPEN, prevPriceBuy: LOW, profit: 0.009, stopLoss: 0.0006 }, // 98.95% | 99.14%
+  // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.0006 }, // ? | 53.84% | 54.39%
   // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.001 }, // ? | 34.45% | 32.73%
   // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.015, stopLoss: 0.001 }, // 28.38% | 28.32% | 28.6%
   // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.01, stopLoss: 0.001 }, // 24.34% | 27.35% | 27.71%
