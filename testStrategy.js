@@ -35,37 +35,6 @@ const data = dataFiles
 
 // applySMA(data);
 
-// {
-//   o: 23.85,
-//   c: 23.94,
-//   h: 23.94,
-//   l: 23.85,
-//   v: 5,
-//   time: '2020-04-06T09:15:00Z',
-//   interval: '1min',
-//   figi: 'BBG000H6HNW3',
-//   sma_2: 23.895,
-//   sma_3: 23.88,
-//   sma_4: 23.8725,
-//   sma_5: 23.888,
-//   sma_7: 23.9071,
-//   sma_10: 23.92,
-//   sma_15: 23.91,
-//   sma_20: 23.8895,
-//   sma_25: 23.8904,
-//   sma_30: 23.889,
-//   sma_35: 23.8766,
-//   sma_40: 23.8615,
-//   sma_45: 23.8611,
-//   sma_50: 23.8808,
-//   sma_55: 23.8965,
-//   sma_60: 23.9023,
-//   sma_70: 23.9119,
-//   sma_80: 23.9144,
-//   sma_90: 23.917,
-//   sma_100: 23.9096
-// }
-
 const funcs = [
   // TODO BUYs should be on top of SELLs
   // function buyWhenPriceCrossSMA(state, current, previous, params) {

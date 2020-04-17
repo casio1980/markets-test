@@ -33,6 +33,20 @@ const strategy = {
   lots: 1,
 };
 
+let candleWatcher = null;
+let keepAliveTimer = null;
+
+let prevCandle = null;
+let position = null;
+
+const setKeepAliveTimer = () => {
+  clearTimeout(keepAliveTimer);
+  keepAliveTimer = setTimeout(() => {
+    candleWatcher();
+    candleWatcher = null;
+  }, 60000);
+};
+
 const logBalance = async (portfolio) => {
   const { positions } = portfolio || (await api.portfolio());
   const usd = positions.find((el) => el.figi === figiUSD);
@@ -42,20 +56,11 @@ const logBalance = async (portfolio) => {
   logger.info(balanceStr + twtrStr);
 };
 
-let candleWatcher = null;
-let subscribeTimer = null;
+async function mainLoop(candle) {
+  // const mainLoop = async (candle) => {
+  setKeepAliveTimer();
 
-let prevCandle = null;
-let position = null;
-
-const mainLoop = async (candle) => {
-  const { time, o, c, v } = candle;
-
-  clearTimeout(subscribeTimer);
-  subscribeTimer = setTimeout(() => {
-    candleWatcher();
-    candleWatcher = null;
-  }, 60000);
+  const { time, l, o, c, v } = candle;
 
   if (!prevCandle) {
     // init the reference candle
@@ -100,21 +105,17 @@ const mainLoop = async (candle) => {
     const isProfit = c >= takeProfit;
     const isLoss = stopLoss >= c;
     if (isProfit || isLoss) {
-      try {
-        api.marketOrder({
-          operation: "Sell",
-          figi: figiTWTR,
-          lots,
-        });
-        position = {
-          ...position,
-          status: "closed",
-          type: isProfit ? "PROFIT" : "LOSS",
-          closed: c,
-        };
-      } catch (err) {
-        logger.fatal(err);
-      }
+      api.marketOrder({
+        operation: "Sell",
+        figi: figiTWTR,
+        lots,
+      });
+      position = {
+        ...position,
+        status: "closed",
+        type: isProfit ? "PROFIT" : "LOSS",
+        closed: c,
+      };
     }
   }
 
@@ -138,7 +139,11 @@ const mainLoop = async (candle) => {
     process.stdout.write("\n");
   }
 
-  process.stdout.write(`${time} | o: ${o}, c: ${c}, vol: ${v}\r`);
+  process.stdout.write(
+    `${time} | low: ${fmtNumber(l)} open: ${fmtNumber(o)}, current: ${fmtNumber(
+      c
+    )}, vol: ${v}          \r`
+  );
 
   // o: 33.48,
   // c: 33.49,
@@ -156,7 +161,7 @@ const mainLoop = async (candle) => {
   //   candleWatcher();
   //   process.exit();
   // }
-};
+}
 
 (async function () {
   try {
@@ -177,13 +182,14 @@ const mainLoop = async (candle) => {
     candleWatcher = api.candle({ figi: figiTWTR, interval: "1min" }, mainLoop);
     setInterval(() => {
       if (!candleWatcher) {
-        logger.debug("Resubscribed");
+        logger.debug("Resubscribing...");
         candleWatcher = api.candle(
           { figi: figiTWTR, interval: "1min" },
           mainLoop
         );
+        setKeepAliveTimer();
       }
-    }, 60000);
+    }, 10000);
 
     // const { figi } = await api.searchOne({ ticker });
     // const stocks = await api.stocks(); // all available instruments
