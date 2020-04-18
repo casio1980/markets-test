@@ -14,6 +14,9 @@ module.exports = {
   INITIAL_MONEY: 1000,
   COMMISSION: 0.0005, // 0.003,
 
+  figiUSD: "BBG0013HGFT4",
+  figiTWTR: "BBG000H6HNW3",
+
   ADJ_CLOSE: "adjClose",
   CLOSE: "c",
   DATE: "date",
