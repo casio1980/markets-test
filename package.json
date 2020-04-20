@@ -11,7 +11,8 @@
     "testStrategy": "node testStrategy.js",
     "server": "cd server && node server.js",
     "robot": "cd robots && node robot.js",
-    "test": "./node_modules/.bin/mocha --compilers js:babel-core/register tests/"
+    "test": "./node_modules/.bin/mocha --compilers js:babel-core/register tests/",
+    "jest": "jest --watch"
   },
   "author": "",
   "license": "MIT",
@@ -39,6 +40,7 @@
     "eslint": "^4.18.1",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-import": "^2.9.0",
+    "jest": "^25.3.0",
     "mocha": "^5.2.0"
   }
 }

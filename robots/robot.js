@@ -5,7 +5,8 @@ const { getAPI } = require("../js/api");
 const storage = require("node-persist");
 
 const { OPEN, LOW, figiUSD, figiTWTR } = require("../js/constants");
-const { fmtNumber } = require("../js/helpers");
+
+const { mainLoop } = require("../robots/mainLoop.js");
 
 log4js.configure({
   appenders: {
@@ -23,7 +24,7 @@ const isProduction = process.env.PRODUCTION === "true";
 
 const api = getAPI();
 
-const strategy = {
+global.strategy = {
   priceBuy: OPEN,
   prevPriceBuy: LOW,
   profit: 0.009,
@@ -31,10 +32,11 @@ const strategy = {
   lots: 10,
 };
 
-let prevCandle;
-let position;
-let skipCandle = false;
+// let prevCandle;
+// let position;
+// let skipCandle = false;
 
+/*
 const logBalance = async (portfolio) => {
   const { positions } = portfolio || (await api.portfolio());
   const usd = positions.find((el) => el.figi === figiUSD);
@@ -43,7 +45,9 @@ const logBalance = async (portfolio) => {
   const twtrStr = twtr ? ` | ${twtr.ticker}: ${twtr.balance}` : "";
   logger.info(balanceStr + twtrStr);
 };
+*/
 
+/*
 const mainLoop = async (candle) => {
   const { time, c: price } = candle;
   const { priceBuy, prevPriceBuy, profit, loss, lots } = strategy;
@@ -139,6 +143,7 @@ const mainLoop = async (candle) => {
     )}, current: ${fmtNumber(price)}, vol: ${candle.v}          \r`
   );
 };
+*/
 
 (async function () {
   try {
