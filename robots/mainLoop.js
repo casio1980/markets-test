@@ -21,12 +21,13 @@ resetLoop();
 
 const logBalance = async (portfolio) => {
   const { positions } = portfolio || (await api.portfolio());
-  const usd = positions.find((el) => el.figi === figiUSD) || {};
-  const twtr = positions.find((el) => el.figi === figi) || {};
+  const usd = positions.find((el) => el.figi === figiUSD);
+  const twtr = positions.find((el) => el.figi === figi);
   const balanceStr = `Balance is ${usd.balance} USD`;
   const twtrStr = twtr ? ` | ${twtr.ticker}: ${twtr.balance}` : "";
   logger.info(balanceStr + twtrStr);
 };
+exports.logBalance = logBalance;
 
 exports.mainLoop = async (candle) => {
   const { time, c: price } = candle;
@@ -58,14 +59,7 @@ exports.mainLoop = async (candle) => {
       });
     }
   } else if (position) {
-    const {
-      status,
-      buyTime,
-      buyPrice,
-      takeProfit,
-      stopLoss,
-      balance,
-    } = position;
+    const { status, buyTime, buyPrice, takeProfit, stopLoss } = position;
     if (status === "unconfirmed") {
       position = { ...position, status: "confirming" };
       const portfolio = await api.portfolio();
@@ -73,9 +67,9 @@ exports.mainLoop = async (candle) => {
       const twtr = positions.find((el) => el.figi === figi);
 
       if (twtr) {
-        position = { ...position, balance: twtr.balance, status: "confirmed" };
+        position = { ...position, status: "confirmed" };
         logger.info(
-          `BUY @ ${buyPrice} | Profit: ${takeProfit}, Loss: ${stopLoss}`
+          `\nBUY @ ${buyPrice} | Profit: ${takeProfit}, Loss: ${stopLoss}`
         );
         logBalance(portfolio);
       } else {
@@ -95,7 +89,7 @@ exports.mainLoop = async (candle) => {
         api.marketOrder({
           operation: "Sell",
           figi,
-          lots: balance,
+          lots,
         });
       }
     } else if (status === "closed") {
@@ -106,7 +100,7 @@ exports.mainLoop = async (candle) => {
 
       if (!twtr) {
         const { type, sellPrice } = position;
-        logger.info(`${type} @ ${sellPrice}`);
+        logger.info(`\n${type} @ ${sellPrice}`);
         logBalance(portfolio);
 
         position = undefined;

@@ -114,53 +114,42 @@ const decisionFunc = (store, current, previous, params) => {
 
 const results = [];
 // const strategy = [
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.01, stopLoss: 0.005 }, // best
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.01, stopLoss: 0.005 },
-//   { priceBuy: OPEN, prevPriceBuy: LOW, profit: 0.01, stopLoss: 0.005 },
-//   { priceBuy: OPEN, prevPriceBuy: HIGH, profit: 0.01, stopLoss: 0.005 },
+//   // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.1, stopLoss: 0.009 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.1, stopLoss: 0.009 }, // best
+//   // { priceBuy: OPEN, prevPriceBuy: LOW, profit: 0.1, stopLoss: 0.009 },
+//   // { priceBuy: OPEN, prevPriceBuy: HIGH, profit: 0.1, stopLoss: 0.009 },
 // ];
 // const strategy = [
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.005 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.01, stopLoss: 0.005 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.015, stopLoss: 0.005 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.02, stopLoss: 0.005 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.025, stopLoss: 0.005 }, // best
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.03, stopLoss: 0.005 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.1, stopLoss: 0.008 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.1, stopLoss: 0.009 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.1, stopLoss: 0.01 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.1, stopLoss: 0.011 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.1, stopLoss: 0.012 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.1, stopLoss: 0.013 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.1, stopLoss: 0.014 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.1, stopLoss: 0.015 }, // best
 // ];
 // const strategy = [
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.001 }, // best
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.002 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.003 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.004 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.005 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.006 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.007 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.008 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.009 },
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.01 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.05, stopLoss: 0.015 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.06, stopLoss: 0.015 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.07, stopLoss: 0.015 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.08, stopLoss: 0.015 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.09, stopLoss: 0.015 }, // best
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.1, stopLoss: 0.015 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.11, stopLoss: 0.015 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.12, stopLoss: 0.015 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.13, stopLoss: 0.015 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.14, stopLoss: 0.015 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.15, stopLoss: 0.015 },
 // ];
-
-// const strategy = [
-//   { priceBuy: OPEN, prevPriceBuy: LOW, profit: 0.009, stopLoss: 0.0006 },
-//   { priceBuy: OPEN, prevPriceBuy: LOW, profit: 0.009, stopLoss: 0.0007 },
-//   { priceBuy: OPEN, prevPriceBuy: LOW, profit: 0.009, stopLoss: 0.0008 },
-//   { priceBuy: OPEN, prevPriceBuy: LOW, profit: 0.009, stopLoss: 0.0009 },
-//   { priceBuy: OPEN, prevPriceBuy: LOW, profit: 0.009, stopLoss: 0.001 },
-//   { priceBuy: OPEN, prevPriceBuy: LOW, profit: 0.009, stopLoss: 0.0011 },
-//   { priceBuy: OPEN, prevPriceBuy: LOW, profit: 0.009, stopLoss: 0.0012 },
-//   { priceBuy: OPEN, prevPriceBuy: LOW, profit: 0.009, stopLoss: 0.0013 },
-//   { priceBuy: OPEN, prevPriceBuy: LOW, profit: 0.009, stopLoss: 0.0014 },
-// ];
-
 const strategy = [
-  { priceBuy: OPEN, prevPriceBuy: LOW, profit: 0.009, stopLoss: 0.0006 }, // 98.95% | 99.14%
-  // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.0006 }, // ? | 53.84% | 54.39%
-  // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.009, stopLoss: 0.001 }, // ? | 34.45% | 32.73%
-  // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.015, stopLoss: 0.001 }, // 28.38% | 28.32% | 28.6%
-  // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.01, stopLoss: 0.001 }, // 24.34% | 27.35% | 27.71%
-  // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.005, stopLoss: 0.001 }, // 21.48% | 23.7% | 23.11%
-  // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.02, stopLoss: 0.001 }, // 19.33% | 17.84% | 20%
-  // { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.025, stopLoss: 0.001 }, // 15.84% | 16.34% | 19.62%
+  // { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.09, stopLoss: 0.012 },
+  // { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.09, stopLoss: 0.013 },
+  // { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.09, stopLoss: 0.014 },
+  // { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.09, stopLoss: 0.015 },
+  // { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.09, stopLoss: 0.016 },
+  { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.09, stopLoss: 0.017 }, // best
+  // { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.09, stopLoss: 0.018 },
 ];
 
 strategy.forEach((item) => {

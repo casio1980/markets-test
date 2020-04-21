@@ -19,22 +19,22 @@ exports.reducer = (state = initialState, action) => {
   if (type === BUY && !position) {
     const newAssets = Math.floor(money / price / (1 + COMMISSION)); // max possible amount
 
-    const sum = -fmtNumber(newAssets * price);
-    const comm = -fmtNumber(sum * COMMISSION);
+    const sum = fmtNumber(newAssets * price);
+    const comm = fmtNumber(sum * COMMISSION);
 
     return {
       ...state,
       assets: newAssets,
-      money: fmtNumber(money + sum + comm),
+      money: fmtNumber(money - sum - comm),
       prevMoney: money,
       position: LONG,
       price,
       percent: 0,
     };
   } else if (type === SELL && position === LONG) {
-    const sum = +fmtNumber(assets * price);
-    const comm = -fmtNumber(sum * COMMISSION);
-    const newMoney = fmtNumber(money + sum + comm);
+    const sum = fmtNumber(assets * price);
+    const comm = fmtNumber(sum * COMMISSION);
+    const newMoney = fmtNumber(money + sum - comm);
 
     return {
       ...state,
