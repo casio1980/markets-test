@@ -11,6 +11,10 @@ exports.getCurrentDate = () => moment().format(DATE_FORMAT);
 exports.getPrevDate = (date, days = -1) =>
   moment(date).add(days, "days").format(DATE_FORMAT);
 exports.getNextDate = (date) => moment(date).add(1, "days").format(DATE_FORMAT);
+exports.isRegularMarket = (date) => {
+  const minutesOfDay = (d) => d.hours() * 60 + d.minutes()
+  return minutesOfDay(moment(date)) >= 17 * 60 + 30;
+};
 
 exports.requestYahooQuote = async (options) =>
   new Promise((resolve, reject) => {
