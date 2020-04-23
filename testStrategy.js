@@ -54,9 +54,10 @@ const funcs = [
   },
 
   // function slideStopLossIfPriceGoesUp(state, current, previous, params) {
-  //   const { position, high } = state;
-  //   return position === LONG && current.c > high
-  //     ? { type: SET_HIGH, price: current.c }
+  //   const { stopLoss } = params;
+  //   const { position, price } = state;
+  //   return position === LONG && current.c > price * (1 + stopLoss)
+  //     ? { type: SET_HIGH, price: price * (1 + stopLoss) }
   //     : undefined;
   // },
 
@@ -142,22 +143,19 @@ const results = [];
 //   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.1, stopLoss: 0.015 }, // - best
 // ];
 // const strategy = [
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.05, stopLoss: 0.013 },
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.06, stopLoss: 0.013 },
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.07, stopLoss: 0.013 }, // 15.4%
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.08, stopLoss: 0.013 },
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.09, stopLoss: 0.013 },
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.1, stopLoss: 0.013 },
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.11, stopLoss: 0.013 },
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.12, stopLoss: 0.013 },
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.13, stopLoss: 0.013 },
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.14, stopLoss: 0.013 },
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.15, stopLoss: 0.013 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.035, stopLoss: 0.0127 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.035, stopLoss: 0.0128 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.035, stopLoss: 0.0129 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.035, stopLoss: 0.013 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.035, stopLoss: 0.0131 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.035, stopLoss: 0.0132 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.035, stopLoss: 0.0133 },
 // ];
 const strategy = [
   // { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.07, stopLoss: 0.01 },  // 15.44%
   // { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.07, stopLoss: 0.011 }, // 16.82%
-  { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.07, stopLoss: 0.012 }, // 17.43% <- best
+  // { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.07, stopLoss: 0.012 }, // 17.43% <- best
+  { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.035, stopLoss: 0.013 }, // <- 27.13%
   // { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.07, stopLoss: 0.013 }, // 15.4%
   // { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.07, stopLoss: 0.014 }, // 16.73%
   // { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.07, stopLoss: 0.015 },
