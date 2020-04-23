@@ -1,6 +1,6 @@
 /* eslint-disable no-case-declarations */
 const { fmtNumber } = require("./helpers");
-const { BUY, SELL } = require("./actions");
+const { BUY, SELL, SET_HIGH } = require("./actions");
 const { COMMISSION, INITIAL_MONEY, LONG } = require("./constants");
 
 const initialState = {
@@ -29,6 +29,7 @@ exports.reducer = (state = initialState, action) => {
       prevMoney: money,
       position: LONG,
       price,
+      high: price,
       percent: 0,
     };
   } else if (type === SELL && position === LONG) {
@@ -44,6 +45,11 @@ exports.reducer = (state = initialState, action) => {
       position: undefined,
       price,
       percent: ((newMoney - prevMoney) / prevMoney) * 100, // TODO extract
+    };
+  } else if (type === SET_HIGH && position === LONG) {
+    return {
+      ...state,
+      high: price,
     };
   }
 

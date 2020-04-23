@@ -13,7 +13,7 @@ const {
   OPEN,
 } = require("./js/constants");
 const { fmtNumber, isRegularMarket, applySMA } = require("./js/helpers");
-const { BUY, buy, SELL, sell } = require("./js/actions");
+const { BUY, buy, SELL, sell, SET_HIGH, setHigh } = require("./js/actions");
 const { reducer } = require("./js/reducers");
 
 // node findStrategy.js TWTR
@@ -46,12 +46,19 @@ const funcs = [
   // },
 
   function buyWhenPriceGoesUp(state, current, previous, params) {
-    const { time } = current
+    const { time } = current;
     const { priceBuy, prevPriceBuy } = params;
     return isRegularMarket(time) && current[priceBuy] > previous[prevPriceBuy]
       ? { type: BUY, price: current[priceBuy], name: "BUY" }
       : undefined;
   },
+
+  // function slideStopLossIfPriceGoesUp(state, current, previous, params) {
+  //   const { position, high } = state;
+  //   return position === LONG && current.c > high
+  //     ? { type: SET_HIGH, price: current.c }
+  //     : undefined;
+  // },
 
   // function buyWhenPriceAndSMAGoUp(state, current, previous, params) {
   //   const { priceBuy, prevPriceBuy, period } = params;
@@ -65,7 +72,9 @@ const funcs = [
 
   function sellOnStopLoss(state, current, previous, params) {
     const { stopLoss } = params;
-    const stopLossPrice = fmtNumber(state.price * (1 - stopLoss));
+    const stopLossPrice = fmtNumber(
+      Math.max(state.price, state.high) * (1 - stopLoss)
+    );
     return stopLossPrice > current[LOW]
       ? { type: SELL, price: stopLossPrice, name: "SL" }
       : undefined;
@@ -108,6 +117,8 @@ const decisionFunc = (store, current, previous, params) => {
               store.getState().money
             }`
           );
+      } else if (decision.type === SET_HIGH && position === LONG) {
+        store.dispatch(setHigh(decision.price));
       }
     }
   });

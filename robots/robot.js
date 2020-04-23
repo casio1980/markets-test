@@ -3,7 +3,7 @@ require("dotenv").config();
 const log4js = require("log4js");
 const storage = require("node-persist");
 const { getAPI } = require("../js/api");
-const { OPEN, LOW, figiTWTR: figi } = require("../js/constants");
+const { OPEN, CLOSE, figiTWTR: figi } = require("../js/constants");
 const { mainLoop, setPosition, logBalance } = require("../robots/mainLoop.js");
 
 log4js.configure({

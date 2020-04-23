@@ -1,5 +1,5 @@
 const { getAPI } = require("../js/api");
-const { fmtNumber } = require("../js/helpers");
+const { fmtNumber, isRegularMarket } = require("../js/helpers");
 const storage = require("node-persist");
 
 const { figiTWTR: figi, figiUSD } = require("../js/constants");
@@ -37,7 +37,7 @@ exports.mainLoop = async (candle) => {
     // init the reference candle
     prevCandle = candle;
   } else if (!position) {
-    if (candle[priceBuy] > prevCandle[prevPriceBuy]) {
+    if (candle[priceBuy] > prevCandle[prevPriceBuy] && isRegularMarket(time)) {
       const takeProfit = fmtNumber(price * (1 + profit));
       const stopLoss = fmtNumber(price * (1 - loss));
 
