@@ -3,7 +3,7 @@ require("dotenv").config();
 const log4js = require("log4js");
 const storage = require("node-persist");
 const { getAPI } = require("../js/api");
-const { OPEN, CLOSE, figiTWTR: figi } = require("../js/constants");
+const { OPEN, CLOSE, figiTWTR: figi, figiUSD } = require("../js/constants");
 const { mainLoop, setPosition, logBalance } = require("../robots/mainLoop.js");
 
 log4js.configure({
@@ -27,7 +27,7 @@ global.strategy = {
   prevPriceBuy: CLOSE,
   profit: 0.035,
   loss: 0.013,
-  lots: 10,
+  secureBalance: 1000,
 };
 
 (async function () {
@@ -39,22 +39,30 @@ global.strategy = {
       await api.setCurrenciesBalance({ currency: "USD", balance: 10000 });
     } else {
       console.log("*** PRODUCTION MODE ***");
+    }
 
-      const portfolio = await api.portfolio();
-      const { positions } = portfolio;
-      const twtr = positions.find((el) => el.figi === figi);
-      if (twtr) {
-        position = {
-          status: "confirmed",
-          takeProfit: await storage.getItem("takeProfit"),
-          stopLoss: await storage.getItem("stopLoss"),
-        };
-        setPosition(position);
-        console.log(
-          `RESTORED | Profit: ${position.takeProfit}, Loss: ${position.stopLoss}`
-        );
-      }
-      await logBalance(portfolio);
+    const portfolio = await api.portfolio();
+    const { positions } = portfolio;
+    await logBalance(portfolio);
+
+    const usd = positions.find((el) => el.figi === figiUSD);
+    if (usd) {
+      const { balance } = usd;
+      await storage.setItem("balance", balance);
+    }
+
+    const twtr = positions.find((el) => el.figi === figi);
+    if (twtr) {
+      position = {
+        status: "confirmed",
+        takeProfit: await storage.getItem("takeProfit"),
+        stopLoss: await storage.getItem("stopLoss"),
+        lots: await storage.getItem("lots"),
+      };
+      setPosition(position);
+      console.log(
+        `RESTORED | Profit: ${position.takeProfit}, Loss: ${position.stopLoss}`
+      );
     }
 
     api.candle({ figi, interval: "1min" }, mainLoop);

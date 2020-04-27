@@ -2,7 +2,7 @@ const { getAPI } = require("../js/api");
 const { fmtNumber, isRegularMarket } = require("../js/helpers");
 const storage = require("node-persist");
 
-const { figiTWTR: figi, figiUSD } = require("../js/constants");
+const { figiTWTR: figi, figiUSD, COMMISSION } = require("../js/constants");
 
 const api = getAPI();
 
@@ -31,13 +31,17 @@ exports.logBalance = logBalance;
 
 exports.mainLoop = async (candle) => {
   const { time, c: price } = candle;
-  const { priceBuy, prevPriceBuy, profit, loss, lots } = strategy;
+  const { priceBuy, prevPriceBuy, profit, loss, secureBalance } = strategy;
 
   if (!prevCandle) {
     // init the reference candle
     prevCandle = candle;
   } else if (!position) {
     if (candle[priceBuy] > prevCandle[prevPriceBuy] && isRegularMarket(time)) {
+      const balance = await storage.getItem("balance");
+      const lots = Math.floor(
+        (balance - secureBalance) / price / (1 + COMMISSION)
+      ); // max possible amount
       const takeProfit = fmtNumber(price * (1 + profit));
       const stopLoss = fmtNumber(price * (1 - loss));
 
@@ -47,8 +51,10 @@ exports.mainLoop = async (candle) => {
         buyPrice: price,
         takeProfit,
         stopLoss,
+        lots,
       };
 
+      await storage.setItem("lots", lots);
       await storage.setItem("takeProfit", takeProfit);
       await storage.setItem("stopLoss", stopLoss);
 
@@ -59,7 +65,7 @@ exports.mainLoop = async (candle) => {
       });
     }
   } else if (position) {
-    const { status, buyTime, buyPrice, takeProfit, stopLoss } = position;
+    const { status, buyTime, buyPrice, takeProfit, stopLoss, lots } = position;
     if (status === "unconfirmed") {
       position = { ...position, status: "confirming" };
       const portfolio = await api.portfolio();
