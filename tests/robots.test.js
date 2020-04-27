@@ -44,10 +44,22 @@ describe("Robot", () => {
     expect(getPosition()).toBeUndefined();
   });
 
-  test("should create an unconfirmed position", async () => {
+  test("should not create a position in the same timestamp as the reference candle", async () => {
     mockGetItem.mockReturnValueOnce(1000);
     await mainLoop({
       time: "2020-01-01T18:00:00Z",
+      l: 9,
+      o: 10,
+      c: 11,
+      v: 100,
+    });
+    expect(getPosition()).toBeUndefined();
+  });
+
+  test("should create an unconfirmed position", async () => {
+    mockGetItem.mockReturnValueOnce(1000);
+    await mainLoop({
+      time: "2020-01-01T18:01:00Z",
       l: 9,
       o: 10,
       c: 11,
@@ -60,7 +72,7 @@ describe("Robot", () => {
   test("should confirm an unconfirmed position", async () => {
     setPosition({
       buyPrice: 11,
-      buyTime: "2020-01-01T18:00:00Z",
+      buyTime: "2020-01-01T18:01:00Z",
       lots: 9,
       status: "unconfirmed",
       stopLoss: 10.99,
@@ -81,7 +93,7 @@ describe("Robot", () => {
       ],
     });
     await mainLoop({
-      time: "2020-01-01T18:00:00Z",
+      time: "2020-01-01T18:01:00Z",
       l: 9,
       o: 10,
       c: 11.01,
@@ -94,14 +106,14 @@ describe("Robot", () => {
   test("should take profit within the same candle", async () => {
     setPosition({
       buyPrice: 11,
-      buyTime: "2020-01-01T18:00:00Z",
+      buyTime: "2020-01-01T18:01:00Z",
       lots: 9,
       status: "confirmed",
       stopLoss: 10.99,
       takeProfit: 11.1,
     });
     await mainLoop({
-      time: "2020-01-01T18:00:00Z",
+      time: "2020-01-01T18:01:00Z",
       l: 9,
       o: 10,
       c: 11.11,
@@ -116,14 +128,14 @@ describe("Robot", () => {
   test("should not take loss within the same candle", async () => {
     setPosition({
       buyPrice: 11,
-      buyTime: "2020-01-01T18:00:00Z",
+      buyTime: "2020-01-01T18:01:00Z",
       lots: 9,
       status: "confirmed",
       stopLoss: 10.99,
       takeProfit: 11.1,
     });
     await mainLoop({
-      time: "2020-01-01T18:00:00Z",
+      time: "2020-01-01T18:01:00Z",
       l: 9,
       o: 10,
       c: 10.98,
@@ -138,14 +150,14 @@ describe("Robot", () => {
   test("should take loss within the next candle", async () => {
     setPosition({
       buyPrice: 11,
-      buyTime: "2020-01-01T18:00:00Z",
+      buyTime: "2020-01-01T18:01:00Z",
       lots: 9,
       status: "confirmed",
       stopLoss: 10.99,
       takeProfit: 11.1,
     });
     await mainLoop({
-      time: "2020-01-01T18:01:00Z",
+      time: "2020-01-01T18:02:00Z",
       l: 9,
       o: 10,
       c: 10.98,
@@ -161,7 +173,7 @@ describe("Robot", () => {
     setPosition({
       balance: 10,
       buyPrice: 11,
-      buyTime: "2020-01-01T18:00:00Z",
+      buyTime: "2020-01-01T18:02:00Z",
       sellPrice: 11.11,
       status: "closed",
       stopLoss: 10.99,
@@ -178,7 +190,7 @@ describe("Robot", () => {
       ],
     });
     await mainLoop({
-      time: "2020-01-01T18:00:00Z",
+      time: "2020-01-01T18:02:00Z",
       l: 9,
       o: 10,
       c: 10.98,

@@ -153,7 +153,7 @@ const results = [];
 // ];
 
 const strategy = [
-  { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.07, stopLoss: 0.009 }, // 2.42% w10-w17, 19.96% w14-w17
+  // { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.07, stopLoss: 0.009 }, // 2.42% w10-w17, 19.96% w14-w17
   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.035, stopLoss: 0.013 }, // 1m <- 29.62% w14-w17
   // { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.06, stopLoss: 0.011 }, // 5m - 23.07% 1m - 26.19%
 ];

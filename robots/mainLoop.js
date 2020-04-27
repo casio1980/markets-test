@@ -37,7 +37,11 @@ exports.mainLoop = async (candle) => {
     // init the reference candle
     prevCandle = candle;
   } else if (!position) {
-    if (candle[priceBuy] > prevCandle[prevPriceBuy] && isRegularMarket(time)) {
+    if (
+      candle[priceBuy] > prevCandle[prevPriceBuy] &&
+      candle.time !== prevCandle.time &&
+      isRegularMarket(time)
+    ) {
       const balance = await storage.getItem("balance");
       const lots = Math.floor(
         (balance - secureBalance) / price / (1 + COMMISSION)
