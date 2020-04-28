@@ -127,10 +127,7 @@ const decisionFunc = (store, current, previous, params) => {
 
 const results = [];
 // const strategy = [
-//   { priceBuy: OPEN, prevPriceBuy: OPEN, profit: 0.07, stopLoss: 0.012 },
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.07, stopLoss: 0.012 },
-//   { priceBuy: OPEN, prevPriceBuy: LOW, profit: 0.07, stopLoss: 0.012 },
-//   { priceBuy: OPEN, prevPriceBuy: HIGH, profit: 0.07, stopLoss: 0.012 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.0382, stopLoss: 0.0136 },
 // ];
 // const strategy = [
 //   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.06, stopLoss: 0.009 },
@@ -154,7 +151,9 @@ const results = [];
 
 const strategy = [
   // { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.07, stopLoss: 0.009 }, // 2.42% w10-w17, 19.96% w14-w17
-  { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.035, stopLoss: 0.013 }, // 1m <- 29.62% w14-w17
+  // { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.035, stopLoss: 0.013 }, // 1m <- 29.62% w14-w17 <- w18 26.06%
+  // { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.038, stopLoss: 0.014 }, //  -> 1311.98 | 31.2%
+  { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.0382, stopLoss: 0.0136 }, // -> 1328.91 | 32.89%
   // { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.06, stopLoss: 0.011 }, // 5m - 23.07% 1m - 26.19%
 ];
 
