@@ -12,7 +12,7 @@ const {
   MEDIAN,
   OPEN,
 } = require("./js/constants");
-const { fmtNumber, isRegularMarket, applySMA } = require("./js/helpers");
+const { fmtNumber, isRegularMarket, isClosingMarket } = require("./js/helpers");
 const { BUY, buy, SELL, sell, SET_HIGH, setHigh } = require("./js/actions");
 const { reducer } = require("./js/reducers");
 
@@ -48,7 +48,9 @@ const funcs = [
   function buyWhenPriceGoesUp(state, current, previous, params) {
     const { time } = current;
     const { priceBuy, prevPriceBuy } = params;
-    return isRegularMarket(time) && current[priceBuy] > previous[prevPriceBuy]
+    return isRegularMarket(time) &&
+      !isClosingMarket(time) &&
+      current[priceBuy] > previous[prevPriceBuy]
       ? { type: BUY, price: current[priceBuy], name: "BUY" }
       : undefined;
   },
@@ -88,6 +90,12 @@ const funcs = [
       ? { type: SELL, price: profitablePrice, name: "PROFIT" }
       : undefined;
   },
+
+  // function sellOnMarketClose(state, current, previous, params) {
+  //   return isClosingMarket(current.time)
+  //     ? { type: SELL, price: current[CLOSE], name: "CLOSE" }
+  //     : undefined;
+  // },
 
   // function sellWhenPriceGoesDown(state, current, previous, params) {
   //   const { priceSell, prevPriceSell } = params;
@@ -140,13 +148,11 @@ const results = [];
 //   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.06, stopLoss: 0.016 },
 // ];
 // const strategy = [
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.07, stopLoss: 0.006 },
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.07, stopLoss: 0.007 },
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.07, stopLoss: 0.008 },
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.07, stopLoss: 0.009 },
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.07, stopLoss: 0.01 },
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.07, stopLoss: 0.011 },
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.07, stopLoss: 0.012 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.08, stopLoss: 0.003 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.09, stopLoss: 0.003 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.1, stopLoss: 0.003 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.04, stopLoss: 0.003 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.05, stopLoss: 0.003 },
 // ];
 
 const strategy = [

@@ -27,7 +27,7 @@ global.strategy = {
   prevPriceBuy: CLOSE,
   profit: 0.0382,
   loss: 0.0136,
-  secureBalance: 1000,
+  secureBalance: 1700,
 };
 
 (async function () {

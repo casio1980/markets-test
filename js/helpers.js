@@ -4,6 +4,8 @@ const moment = require("moment");
 const { DATE_FORMAT, SMA_PERIODS } = require("./constants");
 const { SMA } = require("./functions");
 
+const minutesOfDay = (d) => d.hours() * 60 + d.minutes();
+
 exports.fmtNumber = (number) => +number.toFixed(2);
 exports.fmtDate = (date) => moment(date).format(DATE_FORMAT);
 
@@ -11,10 +13,8 @@ exports.getCurrentDate = () => moment().format(DATE_FORMAT);
 exports.getPrevDate = (date, days = -1) =>
   moment(date).add(days, "days").format(DATE_FORMAT);
 exports.getNextDate = (date) => moment(date).add(1, "days").format(DATE_FORMAT);
-exports.isRegularMarket = (date) => {
-  const minutesOfDay = (d) => d.hours() * 60 + d.minutes()
-  return minutesOfDay(moment(date)) >= 17 * 60 + 30;
-};
+exports.isRegularMarket = (date) => minutesOfDay(moment(date)) >= 17 * 60 + 30;
+exports.isClosingMarket = (date) => minutesOfDay(moment(date)) >= 23 * 60 + 30;
 
 exports.requestYahooQuote = async (options) =>
   new Promise((resolve, reject) => {

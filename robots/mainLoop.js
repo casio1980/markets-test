@@ -40,7 +40,8 @@ exports.mainLoop = async (candle) => {
     if (
       candle[priceBuy] > prevCandle[prevPriceBuy] &&
       candle.time !== prevCandle.time &&
-      isRegularMarket(time)
+      isRegularMarket(time) &&
+      !isClosingMarket(time)
     ) {
       const balance = await storage.getItem("balance");
       const lots = Math.floor(
