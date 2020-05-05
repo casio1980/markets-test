@@ -143,7 +143,7 @@ server.get("/history/:ticker", async (req, res, next) => {
     const { ticker } = req.params;
     const { figi } = await api.searchOne({ ticker });
 
-    const date = moment("2020-04-28");
+    const date = moment("2020-05-04");
     const from = `${date.format(DATE_FORMAT)}T00:00:00Z`;
     const to = `${getNextDate(from)}T00:00:00Z`;
 

@@ -13,8 +13,20 @@ exports.getCurrentDate = () => moment().format(DATE_FORMAT);
 exports.getPrevDate = (date, days = -1) =>
   moment(date).add(days, "days").format(DATE_FORMAT);
 exports.getNextDate = (date) => moment(date).add(1, "days").format(DATE_FORMAT);
-exports.isRegularMarket = (date) => minutesOfDay(moment(date)) >= 17 * 60 + 30;
-exports.isClosingMarket = (date) => minutesOfDay(moment(date)) >= 23 * 60 + 30;
+
+const isRegularMarket = (date) => minutesOfDay(moment(date)) >= 17 * 60 + 30;
+exports.isRegularMarket = isRegularMarket;
+
+const isClosingMarket = (date) => minutesOfDay(moment(date)) >= 23 * 60 + 30;
+exports.isClosingMarket = isClosingMarket;
+
+exports.canOpenPosition = (date) => {
+  return (
+    isRegularMarket(date) &&
+    !isClosingMarket(date) &&
+    minutesOfDay(moment(date)) >= 22 * 60 + 00
+  );
+};
 
 exports.requestYahooQuote = async (options) =>
   new Promise((resolve, reject) => {

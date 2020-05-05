@@ -1,9 +1,5 @@
 const { getAPI } = require("../js/api");
-const {
-  fmtNumber,
-  isRegularMarket,
-  isClosingMarket,
-} = require("../js/helpers");
+const { fmtNumber, canOpenPosition } = require("../js/helpers");
 const storage = require("node-persist");
 
 const { figiTWTR: figi, figiUSD, COMMISSION } = require("../js/constants");
@@ -44,8 +40,7 @@ exports.mainLoop = async (candle) => {
     if (
       candle[priceBuy] > prevCandle[prevPriceBuy] &&
       candle.time !== prevCandle.time &&
-      isRegularMarket(time) &&
-      !isClosingMarket(time)
+      canOpenPosition(time)
     ) {
       position = {
         status: "unconfirmed",
