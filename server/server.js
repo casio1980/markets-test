@@ -1,5 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 require("dotenv").config();
+const moment = require("moment");
 const express = require("express");
 const graphqlHTTP = require("express-graphql");
 const log4js = require("log4js");
@@ -10,7 +11,8 @@ const schema = require("./src/schema");
 const { getSnap } = require("./src/snap");
 const { getAPI } = require("../js/api");
 const { connect } = require("../js/database");
-const { getCurrentDate } = require("../js/helpers");
+const { getCurrentDate, getNextDate } = require("../js/helpers");
+const { DATE_FORMAT } = require("../js/constants");
 
 log4js.configure({
   appenders: {
@@ -140,12 +142,25 @@ server.get("/history/:ticker", async (req, res, next) => {
   try {
     const { ticker } = req.params;
     const { figi } = await api.searchOne({ ticker });
+
+    const date = moment("2020-04-28");
+    const from = `${date.format(DATE_FORMAT)}T00:00:00Z`;
+    const to = `${getNextDate(from)}T00:00:00Z`;
+
     const candles = await api.candlesGet({
       figi,
       interval: "1min",
-      from: "2020-03-27T00:00:00Z",
-      to: "2020-03-28T00:00:00Z",
+      from,
+      to,
     });
+
+    const fs = require("fs");
+    fs.writeFile(
+      `../data/twtr1m/twtr-w${date.week()}-${date.format("MM-DD")}.json`,
+      JSON.stringify(candles),
+      "utf8",
+      () => {}
+    );
 
     res.json(candles);
   } catch (err) {

@@ -1,5 +1,9 @@
 const { getAPI } = require("../js/api");
-const { fmtNumber, isRegularMarket } = require("../js/helpers");
+const {
+  fmtNumber,
+  isRegularMarket,
+  isClosingMarket,
+} = require("../js/helpers");
 const storage = require("node-persist");
 
 const { figiTWTR: figi, figiUSD, COMMISSION } = require("../js/constants");
@@ -43,6 +47,10 @@ exports.mainLoop = async (candle) => {
       isRegularMarket(time) &&
       !isClosingMarket(time)
     ) {
+      position = {
+        status: "unconfirmed",
+      }; // FIXME
+
       const balance = await storage.getItem("balance");
       const lots = Math.floor(
         (balance - secureBalance) / price / (1 + COMMISSION)
@@ -63,11 +71,15 @@ exports.mainLoop = async (candle) => {
       await storage.setItem("takeProfit", takeProfit);
       await storage.setItem("stopLoss", stopLoss);
 
-      api.marketOrder({
-        operation: "Buy",
-        figi,
-        lots,
-      });
+      try {
+        await api.marketOrder({
+          operation: "Buy",
+          figi,
+          lots,
+        });
+      } catch (err) {
+        console.log("!", err);
+      }
     }
   } else if (position) {
     const { status, buyTime, buyPrice, takeProfit, stopLoss, lots } = position;
