@@ -133,14 +133,11 @@ const decisionFunc = (store, current, previous, params) => {
 
 const results = [];
 // const strategy = [
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.065, stopLoss: 0.009 }, // 32.5%
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.068, stopLoss: 0.009 }, // 32.5%
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.069, stopLoss: 0.009 }, // 32.5%
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.07, stopLoss: 0.009 }, // 32.5%
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.071, stopLoss: 0.009 }, // 32.5%
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.072, stopLoss: 0.009 }, // 32.5%
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.073, stopLoss: 0.009 }, // 32.5%
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.075, stopLoss: 0.009 }, // 32.5%
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.073, stopLoss: 0.009 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.0725, stopLoss: 0.009 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.072, stopLoss: 0.009 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.0715, stopLoss: 0.009 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.071, stopLoss: 0.009 },
 // ];
 // const strategy = [
 //   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.06, stopLoss: 0.009 },
