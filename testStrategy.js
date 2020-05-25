@@ -133,11 +133,11 @@ const decisionFunc = (store, current, previous, params) => {
 
 const results = [];
 // const strategy = [
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.073, stopLoss: 0.0088 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.073, stopLoss: 0.0089 },
 //   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.073, stopLoss: 0.009 },
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.0725, stopLoss: 0.009 },
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.072, stopLoss: 0.009 },
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.0715, stopLoss: 0.009 },
-//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.071, stopLoss: 0.009 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.073, stopLoss: 0.0091 },
+//   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.073, stopLoss: 0.0092 },
 // ];
 // const strategy = [
 //   { priceBuy: OPEN, prevPriceBuy: CLOSE, profit: 0.06, stopLoss: 0.009 },
